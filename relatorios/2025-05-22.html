@@ -1,0 +1,606 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Relatório Interativo Pré-Abertura B3 - 22/05/2025</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Visualization & Content Choices:
+        - Global/Brasil Overview: HTML cards for market data (Goal: Inform; Method: Styled text & icons; Interaction: None). Key Indicators Table (Goal: Inform; Method: HTML Table).
+        - Key Indicators % Change Chart: (Goal: Compare/Inform; Viz: Chart.js Horizontal Bar; Interaction: Tooltips; Justification: Quick visual summary of market movements; Library: Chart.js).
+        - Stock Analysis: Searchable list of buttons (Goal: Organize/Navigate; Method: HTML buttons + JS filter; Interaction: Click to select, text search). Detailed stock info (Goal: Inform/Analyze; Method: Structured HTML text, bullet points, tables; Interaction: Read/Scan). Stock-specific summary tables (Goal: Inform; Method: HTML tables). Impact Icons (Goal: Inform quickly; Method: Unicode + color).
+        - CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .tab-button {
+            transition: background-color 0.3s ease, color 0.3s ease;
+        }
+        .tab-button.active {
+            border-bottom-width: 4px;
+        }
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 800px; /* Adjusted for better visibility of more bars */
+            margin-left: auto;
+            margin-right: auto;
+            height: 400px; /* Base height */
+            max-height: 500px; /* Max height */
+        }
+        @media (min-width: 768px) {
+            .chart-container {
+                height: 450px;
+            }
+        }
+        /* Ensure long labels in Chart.js are not cut off */
+        .chartjs-render-monitor {
+            padding-bottom: 20px; /* Add padding if labels are still cut */
+        }
+         /* Custom scrollbar for stock list */
+        .stock-list-container::-webkit-scrollbar {
+            width: 8px;
+        }
+        .stock-list-container::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 10px;
+        }
+        .stock-list-container::-webkit-scrollbar-thumb {
+            background: #888;
+            border-radius: 10px;
+        }
+        .stock-list-container::-webkit-scrollbar-thumb:hover {
+            background: #555;
+        }
+        .loader {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #3498db;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 20px auto;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body class="bg-gray-100 text-gray-800">
+
+    <div class="container mx-auto p-4 sm:p-6 md:p-8">
+        <header class="mb-6 text-center">
+            <h1 class="text-3xl sm:text-4xl font-bold text-sky-700">Relatório Interativo Pré-Abertura B3</h1>
+            <p class="text-lg text-gray-600">22 de Maio de 2025</p>
+        </header>
+
+        <nav class="mb-6 flex flex-wrap justify-center border-b-2 border-gray-300">
+            <button class="tab-button active text-lg font-medium py-3 px-4 sm:px-6 border-sky-600 text-sky-600" onclick="openTab(event, 'global')">🌍 Panorama Global</button>
+            <button class="tab-button text-lg font-medium py-3 px-4 sm:px-6 border-transparent hover:border-sky-500 hover:text-sky-500" onclick="openTab(event, 'brasil')">🇧🇷 Mercado Brasileiro</button>
+            <button class="tab-button text-lg font-medium py-3 px-4 sm:px-6 border-transparent hover:border-sky-500 hover:text-sky-500" onclick="openTab(event, 'acoes')">📈 Análise de Ações</button>
+        </nav>
+
+        <main>
+            <div id="global" class="tab-content space-y-6">
+                <p class="text-base text-gray-700 mb-4 p-4 bg-sky-50 rounded-lg shadow">
+                    Esta seção apresenta um resumo do desempenho dos mercados internacionais (EUA, Ásia, Europa), a movimentação dos futuros americanos, os preços das principais commodities e a cotação do dólar. Além disso, são consolidadas as notícias macroeconômicas e geopolíticas globais mais relevantes que podem impactar o sentimento do investidor e a abertura do mercado brasileiro.
+                </p>
+                
+                <section>
+                    <h2 class="text-2xl font-semibold text-sky-700 mb-3">Mercados Internacionais</h2>
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                        <div class="bg-white p-4 rounded-lg shadow">
+                            <h3 class="text-xl font-medium text-sky-600 mb-2">🇺🇸 Fechamento EUA (21/05)</h3>
+                            <p>S&P 500: <span class="font-bold text-red-600">5.844,61 (-1,6%)</span></p>
+                            <p>Dow Jones: <span class="font-bold text-red-600">41.860,44 (-1,9%)</span></p>
+                            <p>Nasdaq: <span class="font-bold text-red-600">18.872,64 (-1,4%)</span></p>
+                            <p class="text-sm mt-1 text-gray-600">Pressão por preocupações com dívida dos EUA e leilão fraco de títulos.</p>
+                        </div>
+                        <div class="bg-white p-4 rounded-lg shadow">
+                            <h3 class="text-xl font-medium text-sky-600 mb-2">🌏 Mercados Asiáticos (22/05)</h3>
+                            <p>Nikkei 225 (Japão): <span class="font-bold text-red-600">-0,8%</span></p>
+                            <p>Hang Seng (Hong Kong): <span class="font-bold text-red-600">-1,4%</span></p>
+                            <p>Shanghai Comp. (China): <span class="font-bold text-red-600">-0,2%</span></p>
+                            <p>Kospi (Coreia do Sul): <span class="font-bold text-red-600">-1,2%</span></p>
+                             <p class="text-sm mt-1 text-gray-600">Seguiram tendência de baixa de Wall Street.</p>
+                        </div>
+                        <div class="bg-white p-4 rounded-lg shadow">
+                            <h3 class="text-xl font-medium text-sky-600 mb-2">🇪🇺 Mercados Europeus (Manhã 22/05)</h3>
+                            <p>Stoxx Europe 600: <span class="font-bold text-red-600">-0,6%</span></p>
+                            <p>FTSE 100 (Reino Unido): <span class="font-bold text-red-600">-0,5%</span></p>
+                            <p>CAC 40 (França): <span class="font-bold text-red-600">-0,5% a -0,7%</span></p>
+                            <p>DAX (Alemanha): <span class="font-bold text-red-600">-0,6% a -0,8%</span></p>
+                            <p class="text-sm mt-1 text-gray-600">Alinhados com pessimismo global.</p>
+                        </div>
+                    </div>
+                </section>
+
+                <section>
+                    <h2 class="text-2xl font-semibold text-sky-700 mb-3">Futuros Americanos (Manhã 22/05)</h2>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div class="bg-white p-4 rounded-lg shadow">
+                            <p>S&P 500 Futures: <span class="font-bold text-green-600">+0,1%</span> (Leve alta/Estável)</p>
+                        </div>
+                        <div class="bg-white p-4 rounded-lg shadow">
+                            <p>Dow Jones Futures: <span class="font-bold">Estáveis</span></p>
+                        </div>
+                        <div class="bg-white p-4 rounded-lg shadow">
+                            <p>Nasdaq Futures: <span class="font-bold text-green-600">+0,1%</span> (Leve alta/Estável)</p>
+                        </div>
+                    </div>
+                     <p class="text-sm mt-2 text-gray-600">Sinalizam pausa na forte realização, mas recuperação tímida.</p>
+                </section>
+
+                <section>
+                    <h2 class="text-2xl font-semibold text-sky-700 mb-3">Commodities Chave & Câmbio (Overnight/Manhã 22/05)</h2>
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                        <div class="bg-white p-4 rounded-lg shadow">
+                            <h4 class="text-lg font-medium text-sky-600">🛢️ Petróleo</h4>
+                            <p>Brent: <span class="font-bold text-red-600">USD 63,89 - 64,32 (-0,91% a -1,6%)</span></p>
+                            <p>WTI: <span class="font-bold text-red-600">USD 60,61 - 61,04 (-0,86% a -1,6%)</span></p>
+                        </div>
+                        <div class="bg-white p-4 rounded-lg shadow">
+                            <h4 class="text-lg font-medium text-sky-600">⛏️ Minério de Ferro (62% Fe)</h4>
+                            <p>Platts (21/05): <span class="font-bold">USD 100,05 (Estável)</span></p>
+                            <p class="text-sm text-gray-600">Futuros com leve alta recente.</p>
+                        </div>
+                        <div class="bg-white p-4 rounded-lg shadow">
+                            <h4 class="text-lg font-medium text-sky-600">🌲 Celulose Kraft (China 21/05)</h4>
+                            <p>CNY/T: <span class="font-bold text-green-600">5.424,00 (+0,74% dia)</span></p>
+                            <p class="text-sm text-gray-600">Queda de 0,26% no mês.</p>
+                        </div>
+                        <div class="bg-white p-4 rounded-lg shadow col-span-1 md:col-span-2 lg:col-span-1">
+                            <h4 class="text-lg font-medium text-sky-600">💵 Dólar</h4>
+                            <p>USD/BRL (Comercial Spot 22/05 manhã): <span class="font-bold">R$ 5,6456 (-0,01%)</span></p>
+                            <p>DXY (Dollar Index): <span class="font-bold">99,583 (Estável/Fraco)</span></p>
+                        </div>
+                    </div>
+                </section>
+
+                <section>
+                    <h2 class="text-2xl font-semibold text-sky-700 mb-3">Notícias Macroeconômicas e Geopolíticas Globais</h2>
+                    <div class="space-y-3">
+                        <details class="bg-white p-3 rounded-lg shadow">
+                            <summary class="font-medium text-sky-600 cursor-pointer">🇺🇸 EUA</summary>
+                            <p class="text-sm text-gray-700 mt-2">Preocupações com dívida pública e leilão fraco de títulos. Agenda de 22/05: pedidos de seguro-desemprego, PMIs, vendas de casas usadas, índice Fed Kansas City.</p>
+                        </details>
+                        <details class="bg-white p-3 rounded-lg shadow">
+                            <summary class="font-medium text-sky-600 cursor-pointer">🇨🇳 China</summary>
+                            <p class="text-sm text-gray-700 mt-2">Dados comerciais de abril: queda de 19,2% no intercâmbio com EUA. PMI Manufatura (Maio): 51,7 (em linha). PMI Serviços (Maio): 50,5 (abaixo do esperado).</p>
+                        </details>
+                        <details class="bg-white p-3 rounded-lg shadow">
+                            <summary class="font-medium text-sky-600 cursor-pointer">🇪🇺 Zona do Euro</summary>
+                            <p class="text-sm text-gray-700 mt-2">Revisão da Estabilidade Financeira do BCE divulgada. PMIs de maio mistos, apontando para contração ou crescimento modesto. Confiança empresarial francesa abaixo do esperado; índice Ifo alemão levemente acima.</p>
+                        </details>
+                         <details class="bg-white p-3 rounded-lg shadow">
+                            <summary class="font-medium text-sky-600 cursor-pointer">🌍 Geopolítica</summary>
+                            <p class="text-sm text-gray-700 mt-2">Guerra no Sudão como maior crise humanitária. FMI alerta para fragmentação geoeconômica. Perspectiva econômica fraca dos EUA persiste. Ucrânia busca sanções mais duras contra Rússia.</p>
+                        </details>
+                    </div>
+                </section>
+            </div>
+
+            <div id="brasil" class="tab-content hidden space-y-6">
+                <p class="text-base text-gray-700 mb-4 p-4 bg-sky-50 rounded-lg shadow">
+                    Esta seção detalha as tendências para o mercado futuro brasileiro, incluindo o Dólar Futuro e o Índice Futuro. Apresentamos também a tabela resumo dos indicadores chave overnight e um gráfico interativo para visualizar suas variações, oferecendo uma perspectiva consolidada para a abertura do pregão da B3.
+                </p>
+                <section>
+                    <h2 class="text-2xl font-semibold text-sky-700 mb-3">Mercado Futuro Brasileiro (B3) – Tendências para 22/05/2025</h2>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="bg-white p-4 rounded-lg shadow">
+                            <h3 class="text-xl font-medium text-sky-600 mb-2">💵 Dólar Futuro (DOL FUT)</h3>
+                            <p>Fechamento (21/05): <span class="font-bold">5.657,50 pontos (-0,68%)</span></p>
+                            <p>USD/BRL (Internacional 22/05 manhã): <span class="font-bold">R$ 5,6456 (-0,01%)</span></p>
+                            <p class="text-sm mt-1 text-gray-600">Tendência incerta na abertura, volatilidade esperada com DXY fraco mas aversão ao risco global.</p>
+                        </div>
+                        <div class="bg-white p-4 rounded-lg shadow">
+                            <h3 class="text-xl font-medium text-sky-600 mb-2">📊 Índice Futuro (IND FUT)</h3>
+                            <p>Fechamento (21/05): <span class="font-bold text-red-600">139.060 pontos (-1,74%)</span></p>
+                            <p class="text-sm mt-1 text-gray-600">Tendência de cautela na abertura, podendo abrir em queda ou lateralizado. Perda dos 140.000 pontos pode aumentar pressão vendedora.</p>
+                        </div>
+                    </div>
+                </section>
+
+                <section>
+                    <h2 class="text-2xl font-semibold text-sky-700 mb-3">Tabela Resumo: Indicadores Chave Overnight (21/05 para 22/05/2025)</h2>
+                    <div class="overflow-x-auto bg-white p-4 rounded-lg shadow">
+                        <table class="min-w-full divide-y divide-gray-200">
+                            <thead class="bg-gray-50">
+                                <tr>
+                                    <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Indicador</th>
+                                    <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Último Valor (Aprox.)</th>
+                                    <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Variação / Tendência</th>
+                                </tr>
+                            </thead>
+                            <tbody class="bg-white divide-y divide-gray-200" id="keyIndicatorsTableBody">
+                                </tbody>
+                        </table>
+                    </div>
+                </section>
+                
+                <section>
+                    <h2 class="text-2xl font-semibold text-sky-700 mb-3">Gráfico: Variação dos Indicadores Chave (%)</h2>
+                     <p class="text-sm text-gray-600 mb-2">Este gráfico ilustra a variação percentual dos principais indicadores de mercado, fornecendo uma visão comparativa do seu desempenho overnight.</p>
+                    <div class="bg-white p-4 rounded-lg shadow">
+                        <div class="chart-container">
+                            <canvas id="indicadoresChaveChart"></canvas>
+                        </div>
+                    </div>
+                </section>
+            </div>
+
+            <div id="acoes" class="tab-content hidden space-y-6">
+                 <p class="text-base text-gray-700 mb-4 p-4 bg-sky-50 rounded-lg shadow">
+                    Explore a análise detalhada das ações monitoradas. Utilize a barra de pesquisa para encontrar um ticker específico ou navegue pela lista. Ao selecionar uma ação, você terá acesso a notícias corporativas, informações sobre resultados, recomendações de analistas, dados de ADRs (quando disponíveis) e o impacto esperado na abertura do pregão.
+                </p>
+                <div class="flex flex-col md:flex-row gap-4">
+                    <div class="md:w-1/3 lg:w-1/4">
+                        <input type="text" id="stockSearchInput" placeholder="Buscar Ticker (ex: ABEV3)..." class="w-full p-3 border border-gray-300 rounded-lg shadow-sm focus:ring-sky-500 focus:border-sky-500 mb-3">
+                        <div id="stockList" class="stock-list-container bg-white p-3 rounded-lg shadow overflow-y-auto max-h-[60vh] space-y-1">
+                            <div id="stockLoader" class="loader hidden"></div>
+                        </div>
+                    </div>
+                    <div class="md:w-2/3 lg:w-3/4 bg-white p-4 rounded-lg shadow min-h-[60vh]">
+                        <div id="stockDetailArea" class="space-y-4">
+                            <p class="text-gray-500 text-center py-10">Selecione uma ação da lista para ver os detalhes.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <footer class="mt-12 pt-6 border-t border-gray-300 text-center">
+            <p class="text-sm text-gray-500">&copy; 2025 Relatório Interativo. Dados compilados para 22 de Maio de 2025.</p>
+        </footer>
+
+    </div>
+
+    <script>
+        const keyIndicatorsData = [
+            { indicador: "S&P 500 (Fech. 21/05)", valor: "5.844,61", variacao: "-1,6% (Queda Forte)" },
+            { indicador: "Nasdaq (Fech. 21/05)", valor: "18.872,64", variacao: "-1,4% (Queda Forte)" },
+            { indicador: "Nikkei 225 (Ásia 22/05)", valor: "Fechamento", variacao: "-0,8% (Queda)" },
+            { indicador: "Hang Seng (Ásia 22/05)", valor: "Fechamento", variacao: "-1,4% (Queda)" },
+            { indicador: "Shanghai Comp. (Ásia 22/05)", valor: "Fechamento", variacao: "-0,2% (Queda)" },
+            { indicador: "Stoxx Europe 600 (Europa 22/05)", valor: "Manhã", variacao: "-0,6% (Queda)" },
+            { indicador: "S&P 500 Futures (22/05)", valor: "Manhã", variacao: "+0,1% (Leve Alta / Estável)" },
+            { indicador: "Nasdaq Futures (22/05)", valor: "Manhã", variacao: "+0,1% (Leve Alta / Estável)" },
+            { indicador: "Petróleo Brent (USD/barril)", valor: "63,89 - 64,32", variacao: "-0,91% a -1,6% (Queda)" },
+            { indicador: "Petróleo WTI (USD/barril)", valor: "60,61 - 61,04", variacao: "-0,86% a -1,6% (Queda)" },
+            { indicador: "Minério de Ferro 62% (USD/t)", valor: "100,05 (Platts 21/05)", variacao: "Estável (0,00%) / Leve alta em futuros" },
+            { indicador: "Celulose Kraft (CNY/T)", valor: "5.424,00 (China 21/05)", variacao: "+0,74% (Alta diária) / -0,26% (Queda mensal)" },
+            { indicador: "USD/BRL (Comercial)", valor: "5,6456 (Overnight 22/05)", variacao: "-0,01% (Estável / Leve Queda)" },
+            { indicador: "Dólar Futuro (WDOM25)", valor: "5.657,50 (Fech. 21/05)", variacao: "-0,68% (Queda na véspera)" },
+            { indicador: "Índice Futuro (WINM25)", valor: "139.060 (Fech. 21/05)", variacao: "-1,74% (Queda Forte na véspera)" }
+        ];
+
+        const stocksRawData = [
+            { ticker: "ABEV3", nome: "Ambev S.A.", noticias: ["Não foram identificados Fatos Relevantes ou Comunicados ao Mercado via CVM ou no site de Relações com Investidores da Ambev após o fechamento do pregão de 21/05/2025 ou durante a madrugada de 22/05/2025.", "O último arquivamento relevante no site de RI da Ambev parece ser o relatório anual (Form 20-F), referente a um período anterior."], resultados: "O resultado do primeiro trimestre de 2025 (1T25) foi divulgado em 08 de maio de 2025. Não há informações sobre a data de divulgação dos próximos resultados.", recomendacoes: { xp: "Nenhuma análise nova encontrada para o período após 21/05/2025. A análise mais recente disponível é de 18/05/2025, com recomendação \"Neutra\" e preço-alvo de R$ 12,10.", genial: "Nenhuma análise nova encontrada para o período após 21/05/2025.", outros: "Nenhuma recomendação nova para ABEV3 encontrada nos materiais consultados para o período após 21/05/2025." }, adrs: { ticker: "ABEV", exchange: "NYSE", fechamentoOntem: "A ser verificado em fontes de mercado.", preMercadoHoje: "A ser verificado em fontes de mercado." }, resumoTable: [ { info: "Último Fato Relevante/Comunicado RI", detalhe: "Não encontrado para o período relevante (após 21/05 17h)" }, { info: "Último Resultado Divulgado", detalhe: "1T25 (08/05/2025)" }, { info: "Recomendação XP (18/05/2025)", detalhe: "Neutra, Preço-Alvo R$ 12,10" }, { info: "Recomendação Genial (mais recente)", detalhe: "Não encontrada para o período" }, { info: "ADR (ABEV) Fech. 21/05", detalhe: "A ser verificado" }, { info: "ADR (ABEV) Pré-Mercado 22/05", detalhe: "A ser verificado" } ], impacto: "Neutro a Negativo", impactoDetalhe: "Ausência de notícias corporativas novas. Sentimento global adverso pode influenciar." },
+            { ticker: "ALOS3", nome: "Allos S.A.", noticias: ["Allos (ALOS3) ficará \"ex-dividendo\" em 23 de maio de 2025. O pagamento, no valor de R$0,1015214 por ação, está programado para 03 de junho de 2025.", "Não foram identificadas novas divulgações nos sites de RI ou CVM após o fechamento de 21/05/2025 ou durante o overnight de 22/05/2025."], resultados: "Os resultados do primeiro trimestre de 2025 (1T25) já foram divulgados. A empresa reportou um aumento de 5% nas vendas e manteve uma taxa de ocupação de 96,8%. No entanto, o crescimento do EBITDA ficou abaixo do guidance devido a efeitos sazonais.", recomendacoes: { xp: "Nenhuma análise nova encontrada.", genial: "Nenhuma análise nova encontrada.", outros: "Uma análise da Simply Wall St de 18/05/2025 considerou a ação como uma boa opção, destacando o dividendo, mas alertou para um sinal de advertência (\"1 warning sign\")." }, adrs: { ticker: "N/A", exchange: "", fechamentoOntem: "", preMercadoHoje: "" }, resumoTable: [ { info: "Último Fato Relevante/Comunicado RI", detalhe: "Ex-dividendo em 23/05/2025 (R$0,1015214/ação), pagamento em 03/06/2025." }, { info: "Último Resultado Divulgado", detalhe: "1T25 (Vendas +5%, Ocupação 96,8%, EBITDA abaixo do guidance)" } ], impacto: "Neutro a Positivo", impactoDetalhe: "Proximidade da data ex-dividendo pode atrair interesse." },
+            { ticker: "ASAI3", nome: "Assaí Atacadista", noticias: ["Não foram identificadas novas divulgações nos sites de RI ou CVM após o fechamento de 21/05/2025.", "Uma notícia de abril de 2025 informou sobre a renúncia do Vice-Presidente de Finanças e de Relações com Investidores. Impacto imediato provavelmente já absorvido."], resultados: "Os resultados do primeiro trimestre de 2025 (1T25) já foram divulgados e estão disponíveis (Release, Apresentação, ITR).", recomendacoes: { xp: "Nenhuma análise nova encontrada.", genial: "Nenhuma análise nova encontrada.", outros: "" }, adrs: { ticker: "ASAIY", exchange: "OTC", fechamentoOntem: "A ser verificado.", preMercadoHoje: "A ser verificado." }, resumoTable: [ { info: "Último Fato Relevante/Comunicado RI", detalhe: "Renúncia VP Finanças/RI (Abril/2025) (se nada mais novo)" }, { info: "Último Resultado Divulgado", detalhe: "1T25" } ], impacto: "Neutro", impactoDetalhe: "Ausência de notícias novas de impacto direto. Sentimento global." },
+            { ticker: "AZUL4", nome: "Azul Linhas Aéreas", noticias: ["Materiais consultados do RI da Azul indicam informações desatualizadas (1T18). Presume-se ausência de notícias relevantes do RI para o período.", "Não foram encontradas divulgações específicas no CVM para o período relevante."], resultados: "Devido à desatualização dos dados do RI, não é possível determinar a data do último resultado divulgado ou do próximo.", recomendacoes: { xp: "Nenhuma análise nova encontrada.", genial: "Nenhuma análise nova encontrada.", outros: "" }, adrs: { ticker: "AZUL", exchange: "NYSE", fechamentoOntem: "A ser verificado.", preMercadoHoje: "A ser verificado." }, resumoTable: [ { info: "Último Fato Relevante/Comunicado RI", detalhe: "Não encontrado (materiais de RI desatualizados)" }, { info: "Último Resultado Divulgado", detalhe: "Não identificado (materiais de RI desatualizados)" } ], impacto: "Neutro a Negativo", impactoDetalhe: "Ausência de notícias e dados desatualizados no RI. Setor sensível." },
+            { ticker: "B3SA3", nome: "B3 - Brasil, Bolsa, Balcão", noticias: ["Comunicado ao Mercado (recente): B3 aprovou nova estrutura para vice-presidentes e diretores estatutários. Ana Buchaim e Eduardo Farias tornaram-se Diretores Executivos.", "Não foram encontradas divulgações específicas no CVM após o fechamento de 21/05 ou overnight de 22/05."], resultados: "Material menciona \"destaques operacionais de setembro de 2024\" (defasado). Não há data de divulgação de próximos resultados.", recomendacoes: { xp: "Nenhuma análise nova encontrada.", genial: "Nenhuma análise nova encontrada.", outros: "BTG Pactual: Análise de 15/05/2025 sobre TIRs do setor financeiro incluiu B3SA3." }, adrs: { ticker: "N/A", exchange: "", fechamentoOntem: "", preMercadoHoje: "" }, resumoTable: [ { info: "Último Fato Relevante/Comunicado RI", detalhe: "Aprovação de nova estrutura de VPs e Diretores" }, { info: "Recomendação BTG (15/05/25)", detalhe: "Análise sobre TIRs do setor financeiro" } ], impacto: "Neutro", impactoDetalhe: "Mudança na diretoria geralmente tem impacto limitado no curto prazo. Desempenho atrelado ao volume de negociações." },
+            { ticker: "BBAS3", nome: "Banco do Brasil S.A.", noticias: ["Não foram identificados Fatos Relevantes ou Comunicados ao Mercado no RI ou CVM após o fechamento de 21/05 ou overnight de 22/05."], resultados: "Site de RI possui \"Results Center\". Data do último resultado (1T25) ou previsão para o próximo não especificadas.", recomendacoes: { xp: "Nenhuma análise nova encontrada.", genial: "Nenhuma análise nova encontrada.", outros: "BTG Pactual: Análise de 15/05/2025 sobre TIRs do setor financeiro inclui BBAS3." }, adrs: { ticker: "BDORY (ADR Nível I)", exchange: "OTC", fechamentoOntem: "A ser verificado.", preMercadoHoje: "A ser verificado." }, resumoTable: [ { info: "Último Fato Relevante/Comunicado RI", detalhe: "Não encontrado para o período relevante" }, { info: "Recomendação BTG (15/05/25)", detalhe: "Análise sobre TIRs do setor financeiro" } ], impacto: "Neutro a Negativo", impactoDetalhe: "Ausência de notícias e sentimento global desfavorável." },
+            { ticker: "BBSE3", nome: "BB Seguridade Participações S.A.", noticias: ["Não foram identificados Fatos Relevantes ou Comunicados ao Mercado no RI ou CVM após o fechamento de 21/05 ou overnight de 22/05.", "Site de RI informa sobre informe de rendimentos para IR (histórico)."], resultados: "Resultados do 1T25 disponíveis no RI (MD&A, Demonstrações Financeiras, etc.). Data específica da divulgação não clara, mas já ocorreu.", recomendacoes: { xp: "Nenhuma análise nova encontrada.", genial: "Nenhuma análise nova encontrada.", outros: "" }, adrs: { ticker: "N/A", exchange: "", fechamentoOntem: "", preMercadoHoje: "" }, resumoTable: [ { info: "Último Fato Relevante/Comunicado RI", detalhe: "Não encontrado para o período relevante" }, { info: "Último Resultado Divulgado", detalhe: "1T25 (disponível no RI)" } ], impacto: "Neutro a Negativo", impactoDetalhe: "Resultados já divulgados; sentimento global adverso." },
+            { ticker: "BBDC4", nome: "Banco Bradesco S.A.", noticias: ["Não foram identificados Fatos Relevantes ou Comunicados ao Mercado no RI ou CVM após o fechamento de 21/05 ou overnight de 22/05.", "1T25: volume médio diário negociado (B3+NYSE) R$1.150 milhões, payout bruto 59% (R$3,2 bilhões distribuídos) - informação do trimestre passado."], resultados: "Resultados do 1T25 já foram divulgados.", recomendacoes: { xp: "Nenhuma análise nova encontrada.", genial: "Nenhuma análise nova encontrada.", outros: "BTG Pactual: Análise de 15/05/2025 sobre TIRs do setor financeiro inclui BBDC4." }, adrs: { ticker: "BBD", exchange: "NYSE", fechamentoOntem: "A ser verificado.", preMercadoHoje: "A ser verificado." }, resumoTable: [ { info: "Último Fato Relevante/Comunicado RI", detalhe: "Não encontrado para o período relevante" }, { info: "Último Resultado Divulgado", detalhe: "1T25" }, { info: "Recomendação BTG (15/05/25)", detalhe: "Análise sobre TIRs do setor financeiro" } ], impacto: "Neutro a Negativo", impactoDetalhe: "Ausência de notícias e sentimento global desfavorável." },
+            { ticker: "BEEF3", nome: "Minerva Foods S.A.", noticias: ["Não foram identificados Fatos Relevantes ou Comunicados ao Mercado no RI ou CVM após o fechamento de 21/05 ou overnight de 22/05.", "Comunicado de imprensa antigo (2009) sobre inauguração da Minerva Dawn Farms (sem impacto atual)."], resultados: "Site de RI menciona \"Quarterly Earnings Release\". Data do último resultado (1T25) ou previsão para o próximo não especificadas.", recomendacoes: { xp: "Nenhuma análise nova encontrada.", genial: "Nenhuma análise nova encontrada.", outros: "" }, adrs: { ticker: "N/A", exchange: "", fechamentoOntem: "", preMercadoHoje: "" }, resumoTable: [ { info: "Último Fato Relevante/Comunicado RI", detalhe: "Não encontrado para o período relevante" } ], impacto: "Neutro a Negativo", impactoDetalhe: "Influenciado pelo sentimento global e setor. Setor de frigoríficos sensível a câmbio e demanda internacional." },
+            { ticker: "BPAC11", nome: "BTG Pactual", noticias: ["Não foram identificados Fatos Relevantes ou Comunicados ao Mercado no RI ou CVM após o fechamento de 21/05 ou overnight de 22/05."], resultados: "Resultados do 1T25 (Release, ITR, Conference Call, Presentation) foram divulgados (RI menciona \"May. First Quarter 2024 Results\" - provável erro para 2025).", recomendacoes: { xp: "Nenhuma análise nova encontrada.", genial: "Nenhuma análise nova encontrada.", outros: "" }, adrs: { ticker: "N/A", exchange: "", fechamentoOntem: "", preMercadoHoje: "" }, resumoTable: [ { info: "Último Fato Relevante/Comunicado RI", detalhe: "Não encontrado para o período relevante" }, { info: "Último Resultado Divulgado", detalhe: "1T25 (disponível no RI)" } ], impacto: "Neutro a Negativo", impactoDetalhe: "Resultados já divulgados; sentimento global adverso." },
+            { ticker: "BRFS3", nome: "BRF S.A.", noticias: ["BRF anunciou em 30/04/2025 o arquivamento do Relatório Anual (Form 20-F) de 2024 (cumprimento regulatório).", "Não foram identificados novos Fatos Relevantes ou Comunicados após fechamento de 21/05 ou overnight de 22/05."], resultados: "Último resultado divulgado: anual de 2024 (via Form 20-F). Data do 1T25 não encontrada.", recomendacoes: { xp: "Nenhuma análise nova encontrada.", genial: "Nenhuma análise nova encontrada. Prévia do 1T25 publicada em 14/05/2025 pela Genial.", outros: "" }, adrs: { ticker: "BRFS", exchange: "NYSE", fechamentoOntem: "A ser verificado.", preMercadoHoje: "A ser verificado." }, resumoTable: [ { info: "Último Fato Relevante/Comunicado RI", detalhe: "Arquivamento do Form 20-F (anual 2024) em 30/04/2025" }, { info: "Último Resultado Divulgado", detalhe: "Anual 2024 (30/04/2025)" }, { info: "Recomendação Genial (14/05/25)", detalhe: "Prévia 1T25" } ], impacto: "Neutro a Negativo", impactoDetalhe: "Sem notícias novas e cenário global adverso." },
+            { ticker: "CMIG4", nome: "CEMIG", noticias: ["Cemig informou em 30/04/2025 o arquivamento do Formulário 20-F de 2024 (formalidade).", "Últimas Atualizações no RI (12/05): Webcast Resultados 1T25, Estatuto Social, RESULTADOS 1T25. (08/05): Resultados 1T25, Comunicado - Alteração de participação acionária relevante.", "Próximos eventos: 21/Maio - Submissão Formulário de Referência 2025 (regulatória); 14/Agosto - Divulgação Resultados 2T25."], resultados: "Resultados do 1T25 divulgados em 08/05/2025. Próxima divulgação: 2T25 em 14/08/2025.", recomendacoes: { xp: "Nenhuma análise nova encontrada.", genial: "Nenhuma análise nova encontrada.", outros: "" }, adrs: { ticker: "CIG", exchange: "NYSE", fechamentoOntem: "A ser verificado.", preMercadoHoje: "A ser verificado." }, resumoTable: [ { info: "Último Fato Relevante/Comunicado RI", detalhe: "Submissão Formulário de Referência (21/05/25) (se nada mais novo)" }, { info: "Último Resultado Divulgado", detalhe: "1T25 (08/05/2025)" }, { info: "Próximo Resultado", detalhe: "2T25 (14/08/2025)" } ], impacto: "Neutro", impactoDetalhe: "Eventos recentes já precificados. Sentimento global pode pesar." },
+            { ticker: "CMIN3", nome: "CSN Mineração S.A.", noticias: ["Não foram identificados Fatos Relevantes ou Comunicados ao Mercado no RI ou CVM após o fechamento de 21/05 ou overnight de 22/05."], resultados: "CSN (controladora) anunciou resultados do 1T25 em 08/05/2025, com prejuízo líquido de R$ 732 milhões para CSN consolidada. Verificar RI da CMIN3 para resultados específicos.", recomendacoes: { xp: "Nenhuma análise nova encontrada.", genial: "Nenhuma análise nova encontrada.", outros: "" }, adrs: { ticker: "N/A", exchange: "", fechamentoOntem: "", preMercadoHoje: "" }, resumoTable: [ { info: "Último Fato Relevante/Comunicado RI", detalhe: "Não encontrado para o período relevante" }, { info: "Último Resultado Divulgado (Controladora CSN)", detalhe: "1T25 (08/05/25). Verificar RI CMIN3 para 1T25." } ], impacto: "Neutro a Negativo", impactoDetalhe: "Dependente do preço do minério e sentimento global." },
+            { ticker: "CPLE6", nome: "Copel", noticias: ["Em 09/05/2025, Copel GeT aprovou estrutura de capital ótima e nova Política de Dividendos (mínimo 75% Lucro Líquido, 2x/ano).", "Não foram identificados novos Fatos Relevantes ou Comunicados após fechamento de 21/05 ou overnight de 22/05."], resultados: "Data do último resultado (1T25) ou previsão para o próximo não especificadas.", recomendacoes: { xp: "Nenhuma análise nova encontrada.", genial: "Nenhuma análise nova encontrada.", outros: "" }, adrs: { ticker: "ELP", exchange: "NYSE", fechamentoOntem: "A ser verificado.", preMercadoHoje: "A ser verificado." }, resumoTable: [ { info: "Último Fato Relevante/Comunicado RI", detalhe: "Aprovação de estrutura de capital ótima e nova Política de Dividendos (09/05/2025)" } ], impacto: "Neutro", impactoDetalhe: "Notícia sobre dividendos já absorvida. Sentimento global pode influenciar." },
+            { ticker: "CRFB3", nome: "Grupo Carrefour Brasil", noticias: ["EVENTO SIGNIFICATIVO: Processo de fechamento de capital do Atacadão e relação com matriz Carrefour S.A. (EPA:CA) em fase final. Carrefour S.A. emitirá 58,3M novas ações. 84,61% dos minoritários do Atacadão optaram por receber ações da Carrefour S.A. Conclusão esperada para fim de maio de 2025.", "Assembleia do Carrefour Brasil aprovou proposta para fechamento de capital da empresa na B3 (delistagem)."], resultados: "Carrefour Brasil (CRFB3) registrou lucro de R$ 225 milhões no 1T25.", recomendacoes: { xp: "Nenhuma análise nova encontrada.", genial: "Nenhuma análise nova encontrada.", outros: "" }, adrs: { ticker: "N/A (troca por EPA:CA)", exchange: "", fechamentoOntem: "", preMercadoHoje: "" }, resumoTable: [ { info: "Último Fato Relevante/Comunicado RI", detalhe: "Atualizações sobre processo de delistagem e troca de ações por Carrefour (EPA:CA) (esperado fim de Maio)" }, { info: "Último Resultado Divulgado", detalhe: "1T25: Lucro de R$ 225 milhões" } ], impacto: "Elevada volatilidade", impactoDetalhe: "Notícias sobre a conclusão da delistagem podem gerar movimentos significativos." },
+            { ticker: "CSAN3", nome: "Cosan S.A.", noticias: ["Não foram identificados Fatos Relevantes ou Comunicados ao Mercado no RI ou CVM após o fechamento de 21/05 ou overnight de 22/05."], resultados: "Data do último resultado (1T25) ou previsão para o próximo não especificadas.", recomendacoes: { xp: "Nenhuma análise nova encontrada.", genial: "Nenhuma análise nova encontrada.", outros: "" }, adrs: { ticker: "CSAN", exchange: "NYSE (Listagem recente, verificar se ADR ou ação direta)", fechamentoOntem: "A ser verificado.", preMercadoHoje: "A ser verificado." }, resumoTable: [ { info: "Último Fato Relevante/Comunicado RI", detalhe: "Não encontrado para o período relevante" } ], impacto: "Neutro a Negativo", impactoDetalhe: "Ausência de notícias e sentimento global adverso." },
+            { ticker: "CSNA3", nome: "Companhia Siderúrgica Nacional", noticias: ["CSN anunciou resultados do 1T25 em 08/05/2025: prejuízo líquido consolidado de R$ 732 milhões (impacto operacional e cambial).", "Não foram identificados novos Fatos Relevantes ou Comunicados após fechamento de 21/05 ou overnight de 22/05."], resultados: "Resultados do 1T25 divulgados em 08/05/2025.", recomendacoes: { xp: "Nenhuma análise nova encontrada.", genial: "Nenhuma análise nova encontrada.", outros: "" }, adrs: { ticker: "SID", exchange: "NYSE", fechamentoOntem: "A ser verificado.", preMercadoHoje: "A ser verificado." }, resumoTable: [ { info: "Último Fato Relevante/Comunicado RI", detalhe: "Não encontrado para o período relevante (após 21/05 17h)" }, { info: "Último Resultado Divulgado", detalhe: "1T25 (08/05/2025): Prejuízo líquido consolidado de R$ 732 milhões" } ], impacto: "Neutro a Negativo", impactoDetalhe: "Resultados já divulgados; sentimento global adverso." },
+            { ticker: "CXSE3", nome: "Caixa Seguridade Participações S.A.", noticias: ["Divulgações recentes no RI da Caixa (controladora) anteriores ao período: Emissão de Bond Social (08/05), Revisão Estatuto (06/05), etc.", "Não foram identificados Fatos Relevantes ou Comunicados no RI da CXSE3 ou CVM após fechamento de 21/05 ou overnight de 22/05."], resultados: "Release de Resultado do 1T25 disponível no RI. Data específica da divulgação não clara, mas já ocorreu.", recomendacoes: { xp: "Nenhuma análise nova encontrada.", genial: "Nenhuma análise nova encontrada.", outros: "" }, adrs: { ticker: "N/A", exchange: "", fechamentoOntem: "", preMercadoHoje: "" }, resumoTable: [ { info: "Último Fato Relevante/Comunicado RI", detalhe: "Não encontrado para o período relevante (após 21/05 17h)" }, { info: "Último Resultado Divulgado", detalhe: "1T25 (disponível no RI)" } ], impacto: "Neutro", impactoDetalhe: "Resultados já divulgados; sentimento global pode influenciar." },
+            { ticker: "CYRE3", nome: "Cyrela Brazil Realty S.A.", noticias: ["Site de RI destaca acesso aos Resultados do 1T25.", "Não foram identificados Fatos Relevantes ou Comunicados no RI ou CVM após fechamento de 21/05 ou overnight de 22/05."], resultados: "Resultados do 1T25 (Earning Release, Financial Statements, etc.) disponíveis no RI. Data específica não clara, mas já ocorreu.", recomendacoes: { xp: "Nenhuma análise nova encontrada.", genial: "Nenhuma análise nova encontrada.", outros: "" }, adrs: { ticker: "N/A", exchange: "", fechamentoOntem: "", preMercadoHoje: "" }, resumoTable: [ { info: "Último Fato Relevante/Comunicado RI", detalhe: "Não encontrado para o período relevante" }, { info: "Último Resultado Divulgado", detalhe: "1T25 (disponível no RI)" } ], impacto: "Neutro a Negativo", impactoDetalhe: "Setor sensível a juros; sentimento global adverso." },
+            { ticker: "ELET3", nome: "Eletrobras - ON", noticias: ["Últimos resultados do 1T25 disponíveis no RI.", "Notícias anteriores (provavelmente já precificadas): Eletrobras (ELET6) registra prejuízo de R$ 354 milhões no 1T25; pagamento de dividendos; finalização da compra da Eletronet.", "Não foram identificados novos Fatos Relevantes ou Comunicados após fechamento de 21/05 ou overnight de 22/05."], resultados: "Resultados do 1T25 divulgados (prejuízo de R$ 354 milhões).", recomendacoes: { xp: "Nenhuma análise nova encontrada.", genial: "Nenhuma análise nova encontrada.", outros: "" }, adrs: { ticker: "EBR", exchange: "NYSE", fechamentoOntem: "A ser verificado.", preMercadoHoje: "A ser verificado." }, resumoTable: [ { info: "Último Fato Relevante/Comunicado RI", detalhe: "Não encontrado para o período relevante (após 21/05 17h)" }, { info: "Último Resultado Divulgado", detalhe: "1T25 (Prejuízo de R$ 354 milhões)" } ], impacto: "Neutro a Negativo", impactoDetalhe: "Resultado trimestral já conhecido; sentimento global." },
+            { ticker: "ELET6", nome: "Eletrobras - PNB", noticias: ["Mesmas informações de ELET3.", "Não foram identificados novos Fatos Relevantes ou Comunicados após fechamento de 21/05 ou overnight de 22/05."], resultados: "Resultados do 1T25 divulgados (prejuízo de R$ 354 milhões).", recomendacoes: { xp: "Nenhuma análise nova encontrada.", genial: "Nenhuma análise nova encontrada.", outros: "" }, adrs: { ticker: "EBR.B (se houver ticker distinto)", exchange: "NYSE", fechamentoOntem: "A ser verificado.", preMercadoHoje: "A ser verificado." }, resumoTable: [ { info: "Último Fato Relevante/Comunicado RI", detalhe: "Não encontrado para o período relevante (após 21/05 17h)" }, { info: "Último Resultado Divulgado", detalhe: "1T25 (Prejuízo de R$ 354 milhões)" } ], impacto: "Neutro a Negativo", impactoDetalhe: "Resultado trimestral já conhecido; sentimento global." },
+            { ticker: "EMBR3", nome: "Embraer S.A.", noticias: ["Resultados do 1T25: Receita US$1,103bi (+23% YoY), EBIT ajustado US$62,0M. Fluxo de caixa livre ajustado negativo. Aprovação de dividendos R$0,07/ação (2024). Emissão de bond US$650M. Dívida líq./EBITDA 0,5x. Entregas 30 jatos 1T25. Backlog recorde US$26,4bi. Guidance 2025 reiterado.", "Não foram identificados novos Fatos Relevantes ou Comunicados após fechamento de 21/05 ou overnight de 22/05."], resultados: "Resultados do 1T25 já divulgados.", recomendacoes: { xp: "Nenhuma análise nova encontrada.", genial: "Nenhuma análise nova encontrada.", outros: "" }, adrs: { ticker: "ERJ", exchange: "NYSE", fechamentoOntem: "A ser verificado.", preMercadoHoje: "A ser verificado." }, resumoTable: [ { info: "Último Fato Relevante/Comunicado RI", detalhe: "Não encontrado para o período relevante (após 21/05 17h)" }, { info: "Último Resultado Divulgado", detalhe: "1T25 (Receita US$1,1bi, Backlog recorde US$26,4bi, Dividendos aprovados)" } ], impacto: "Neutro a Positivo", impactoDetalhe: "Resultados fortes do 1T25 podem continuar a repercutir bem, apesar do cenário global." },
+            { ticker: "EQTL3", nome: "Equatorial Energia S.A.", noticias: ["Site de RI destaca compromisso com ESG (inventário GEE, investimentos em transição energética).", "Não foram identificados Fatos Relevantes ou Comunicados no RI ou CVM após fechamento de 21/05 ou overnight de 22/05."], resultados: "Data do último resultado (1T25) ou previsão para o próximo não especificadas.", recomendacoes: { xp: "Nenhuma análise nova encontrada.", genial: "Nenhuma análise nova encontrada.", outros: "" }, adrs: { ticker: "N/A", exchange: "", fechamentoOntem: "", preMercadoHoje: "" }, resumoTable: [ { info: "Último Fato Relevante/Comunicado RI", detalhe: "Não encontrado para o período relevante" } ], impacto: "Neutro a Negativo", impactoDetalhe: "Ausência de notícias e sentimento global adverso." },
+            { ticker: "FLRY3", nome: "Fleury S.A.", noticias: ["Simply Wall St (18/05 ou antes): Fleury deve reportar resultados do 1T25 em 08/05/2025 (já ocorrido).", "Não foram identificados Fatos Relevantes ou Comunicados no RI ou CVM após fechamento de 21/05 ou overnight de 22/05."], resultados: "Resultados do 1T25 divulgados em/ou por volta de 08/05/2025. Próxima divulgação (2T25 ou 3T25) prevista para 07/11/2025.", recomendacoes: { xp: "Nenhuma análise nova encontrada.", genial: "Nenhuma análise nova encontrada.", outros: "Simply Wall St (18/05 ou antes): Ação subavaliada, bom balanço, paga dividendos (histórico instável)." }, adrs: { ticker: "N/A", exchange: "", fechamentoOntem: "", preMercadoHoje: "" }, resumoTable: [ { info: "Último Fato Relevante/Comunicado RI", detalhe: "Não encontrado para o período relevante" }, { info: "Último Resultado Divulgado", detalhe: "1T25 (divulgado em/ou por volta de 08/05/2025)" } ], impacto: "Neutro", impactoDetalhe: "Resultados já divulgados; sentimento global pode influenciar." },
+            { ticker: "GGBR4", nome: "Gerdau S.A.", noticias: ["Resultados do 1T25: EBITDA ajustado R$2,4bi (em linha com 4T24). América do Norte compensou Brasil. CAPEX R$1,4bi. Dividendos R$0,12/ação. Recompra de ações em andamento. Expansão laminador Ouro Branco.", "Não foram identificados novos Fatos Relevantes ou Comunicados após fechamento de 21/05 ou overnight de 22/05."], resultados: "Resultados do 1T25 já divulgados.", recomendacoes: { xp: "Nenhuma análise nova encontrada.", genial: "Nenhuma análise nova encontrada.", outros: "" }, adrs: { ticker: "GGB", exchange: "NYSE", fechamentoOntem: "A ser verificado.", preMercadoHoje: "A ser verificado." }, resumoTable: [ { info: "Último Fato Relevante/Comunicado RI", detalhe: "Não encontrado para o período relevante (após 21/05 17h)" }, { info: "Último Resultado Divulgado", detalhe: "1T25 (EBITDA R$2,4bi, dividendos R$0,12/ação)" } ], impacto: "Neutro a Negativo", impactoDetalhe: "Resultados já conhecidos; setor sensível ao global." },
+            { ticker: "GOAU4", nome: "Metalúrgica Gerdau S.A.", noticias: ["Controladora da Gerdau S.A. Notícias e resultados ligados à GGBR4.", "Não foram identificados novos Fatos Relevantes ou Comunicados específicos para GOAU4 após fechamento de 21/05 ou overnight de 22/05."], resultados: "Refletem os resultados da Gerdau S.A. (GGBR4). Resultados do 1T25 da GGBR4 já divulgados.", recomendacoes: { xp: "Nenhuma análise nova encontrada.", genial: "Nenhuma análise nova encontrada.", outros: "" }, adrs: { ticker: "N/A", exchange: "", fechamentoOntem: "", preMercadoHoje: "" }, resumoTable: [ { info: "Último Fato Relevante/Comunicado RI", detalhe: "Ligado à GGBR4; não específico para GOAU4 no período." }, { info: "Último Resultado Divulgado", detalhe: "Consolidado com GGBR4 (1T25)" } ], impacto: "Neutro a Negativo", impactoDetalhe: "Segue GGBR4 e sentimento global." },
+            { ticker: "HAPV3", nome: "Hapvida Participações e Investimentos S.A.", noticias: ["Não foram identificados Fatos Relevantes, Comunicados ou Notícias para investidores divulgados após 21/05 17h ou em 22/05."], resultados: "Resultados do 1T25 (Earnings Release, Presentation, etc.) disponíveis no RI. Data específica não clara, mas já ocorreu.", recomendacoes: { xp: "Recomendação \"Compra\" (até 21/05), Preço Atual R$ 2,84, Preço-Alvo R$ 6,40, Potencial +125,35%. Nenhuma análise nova após 21/05.", genial: "Nenhuma análise nova encontrada após 21/05.", outros: "" }, adrs: { ticker: "N/A", exchange: "", fechamentoOntem: "", preMercadoHoje: "" }, resumoTable: [ { info: "Último Fato Relevante/Comunicado RI", detalhe: "Não encontrado para o período relevante (após 21/05 17h)" }, { info: "Último Resultado Divulgado", detalhe: "1T25 (disponível no RI)" }, { info: "Recomendação XP (até 21/05)", detalhe: "Compra, Preço-Alvo R$ 6,40" } ], impacto: "Neutro a Negativo", impactoDetalhe: "Resultados já conhecidos; sentimento global adverso." },
+            { ticker: "ITSA4", nome: "Itaúsa S.A.", noticias: ["Não foram identificados Fatos Relevantes, Comunicados ou Notícias para investidores divulgados após 21/05 17h ou em 22/05."], resultados: "Data do último resultado (1T25) ou previsão para o próximo não especificadas.", recomendacoes: { xp: "Nenhuma análise nova encontrada após 21/05.", genial: "Nenhuma análise nova encontrada após 21/05.", outros: "" }, adrs: { ticker: "ITSAU", exchange: "OTC", fechamentoOntem: "A ser verificado.", preMercadoHoje: "A ser verificado." }, resumoTable: [ { info: "Último Fato Relevante/Comunicado RI", detalhe: "Não encontrado para o período relevante" } ], impacto: "Neutro a Negativo", impactoDetalhe: "Depende de ITUB4 e sentimento global." },
+            { ticker: "ITUB4", nome: "Itaú Unibanco Holding S.A.", noticias: ["Não foram identificados Fatos Relevantes, Comunicados ou Notícias divulgados após 21/05 17h ou em 22/05. Últimas atualizações no RI em 12/05."], resultados: "Data do último resultado (1T25) ou previsão para o próximo não especificadas. RI possui \"Central de Resultados\".", recomendacoes: { xp: "Recomendação \"Compra\" (até 21/05), Preço Atual R$ 37,49, Preço-Alvo R$ 43,00, Potencial +14,70%. Nenhuma análise nova após 21/05.", genial: "Nenhuma análise nova encontrada após 21/05.", outros: "" }, adrs: { ticker: "ITUB", exchange: "NYSE", fechamentoOntem: "$6,65 (-1,63%)", preMercadoHoje: "Não encontrado dados de pré-mercado." }, resumoTable: [ { info: "Último Fato Relevante/Comunicado RI", detalhe: "Não encontrado para o período relevante (após 21/05 17h)" }, { info: "Recomendação XP (até 21/05)", detalhe: "Compra, Preço-Alvo R$ 43,00" }, { info: "ADR (ITUB) Fech. 21/05", detalhe: "$6,65 (-1,63%)" } ], impacto: "Negativo", impactoDetalhe: "Queda da ADR e sentimento global adverso." },
+            { ticker: "JBSS3", nome: "JBS S.A.", noticias: ["Não foram identificados Fatos Relevantes, Comunicados ou Notícias divulgados após 21/05 17h ou em 22/05."], resultados: "Data do último resultado (1T25) ou previsão para o próximo não especificadas. RI possui \"Results Center\".", recomendacoes: { xp: "Nenhuma análise nova encontrada após 21/05.", genial: "Call para JBSS3 fechado em R$34,99 (lucro bruto 0,17% em 7 dias) (até 21/05). Relatório \"JBS (JBSS3) I Resultado 1T25: Sem sal, mas de olho na dupla listagem\" (14/05). Nenhuma análise nova após 21/05.", outros: "" }, adrs: { ticker: "JBSAY", exchange: "OTC", fechamentoOntem: "A ser verificado.", preMercadoHoje: "Não disponível nos materiais." }, resumoTable: [ { info: "Último Fato Relevante/Comunicado RI", detalhe: "Não encontrado para o período relevante (após 21/05 17h)" }, { info: "Último Resultado Divulgado", detalhe: "A ser verificado no RI (1T25 mencionado em análise Genial de 14/05)" }, { info: "Recomendação Genial (14/05/25)", detalhe: "Relatório sobre resultado 1T25" } ], impacto: "Neutro a Negativo", impactoDetalhe: "Sem notícias novas e sentimento global adverso." },
+            { ticker: "KLBN11", nome: "Klabin S.A.", noticias: ["Analisedeacoes.com.br (recente): Klabin lucrou R$ 446 milhões no 1T25 e anunciou R$ 279 milhões em dividendos. Mencionou datas-com.", "Não foram identificados Fatos Relevantes, Comunicados ou Notícias divulgados após 21/05 17h ou em 22/05."], resultados: "Resultados do 1T25 divulgados (Lucro R$ 446 milhões).", recomendacoes: { xp: "Recomendação \"Compra\" (até 21/05), Preço Atual R$ 19,20, Preço-Alvo R$ 29,00, Potencial +51,04%. Nenhuma análise nova após 21/05.", genial: "Recomendação \"Comprar\" (até 21/05) com potencial de alta de +22,4%. Nenhuma análise nova após 21/05.", outros: "" }, adrs: { ticker: "KLBAY", exchange: "OTC", fechamentoOntem: "A ser verificado.", preMercadoHoje: "Não disponível." }, resumoTable: [ { info: "Último Fato Relevante/Comunicado RI", detalhe: "Não encontrado para o período relevante (após 21/05 17h)" }, { info: "Último Resultado Divulgado", detalhe: "1T25 (Lucro R$ 446 milhões, dividendos R$ 279 mi)" }, { info: "Recomendação XP (até 21/05)", detalhe: "Compra, Preço-Alvo R$ 29,00" }, { info: "Recomendação Genial (até 21/05)", detalhe: "Comprar, Potencial +22,4%" } ], impacto: "Neutro", impactoDetalhe: "Preço da celulose com leve alta diária, mas cenário global pesa." },
+            { ticker: "LREN3", nome: "Lojas Renner S.A.", noticias: ["Analisedeacoes.com.br (recente): Renner registrou aumento de 59% no lucro do 1T25 (R$ 221 milhões), anunciou JCP de R$ 0,19 por ação e finalizou venda de frações.", "Não foram identificados Fatos Relevantes, Comunicados ou Notícias divulgados após 21/05 17h ou em 22/05."], resultados: "Resultados do 1T25 divulgados (Lucro R$ 221 milhões, +59%).", recomendacoes: { xp: "Nenhuma análise nova encontrada após 21/05.", genial: "Recomendação \"Comprar\" (até 21/05) com potencial de alta de +2,21%. Nova entrada de \"Vender\" em 21/05/2025. Esta última é a mais relevante.", outros: "" }, adrs: { ticker: "N/A", exchange: "", fechamentoOntem: "", preMercadoHoje: "" }, resumoTable: [ { info: "Último Fato Relevante/Comunicado RI", detalhe: "Não encontrado para o período relevante (após 21/05 17h)" }, { info: "Último Resultado Divulgado", detalhe: "1T25 (Lucro R$ 221 milhões, +59%)" }, { info: "Recomendação Genial (21/05/25)", detalhe: "Nova entrada de \"Vender\"" } ], impacto: "Negativo", impactoDetalhe: "Nova recomendação de \"Venda\" pela Genial é um fator negativo. Sentimento global também pesa." },
+            { ticker: "MGLU3", nome: "Magazine Luiza S.A.", noticias: ["Não foram identificados Fatos Relevantes ou Comunicados ao Mercado no RI ou CVM após o fechamento de 21/05 ou overnight de 22/05."], resultados: "Data do último resultado (1T25) ou previsão para o próximo não especificadas.", recomendacoes: { xp: "Nenhuma análise nova encontrada.", genial: "Nenhuma análise nova encontrada.", outros: "" }, adrs: { ticker: "N/A", exchange: "", fechamentoOntem: "", preMercadoHoje: "" }, resumoTable: [ { info: "Último Fato Relevante/Comunicado RI", detalhe: "Não encontrado para o período relevante" } ], impacto: "Neutro a Negativo", impactoDetalhe: "Setor de varejo sensível ao cenário macroeconômico. Sentimento global adverso." },
+            { ticker: "MULT3", nome: "Multiplan Empreendimentos Imobiliários S.A.", noticias: ["Não foram identificados Fatos Relevantes ou Comunicados ao Mercado no RI ou CVM após o fechamento de 21/05 ou overnight de 22/05."], resultados: "Data do último resultado (1T25) ou previsão para o próximo não especificadas.", recomendacoes: { xp: "Nenhuma análise nova encontrada.", genial: "Nenhuma análise nova encontrada.", outros: "" }, adrs: { ticker: "N/A", exchange: "", fechamentoOntem: "", preMercadoHoje: "" }, resumoTable: [ { info: "Último Fato Relevante/Comunicado RI", detalhe: "Não encontrado para o período relevante" } ], impacto: "Neutro a Negativo", impactoDetalhe: "Setor de shoppings pode ser afetado pelo humor do consumidor e cenário econômico. Sentimento global adverso." },
+            { ticker: "NTCO3", nome: "Natura &Co Holding S.A.", noticias: ["Não foram identificados Fatos Relevantes ou Comunicados ao Mercado no RI ou CVM após o fechamento de 21/05 ou overnight de 22/05."], resultados: "Data do último resultado (1T25) ou previsão para o próximo não especificadas.", recomendacoes: { xp: "Nenhuma análise nova encontrada.", genial: "Nenhuma análise nova encontrada.", outros: "" }, adrs: { ticker: "NTCOY", exchange: "OTC", fechamentoOntem: "A ser verificado.", preMercadoHoje: "A ser verificado." }, resumoTable: [ { info: "Último Fato Relevante/Comunicado RI", detalhe: "Não encontrado para o período relevante" } ], impacto: "Neutro a Negativo", impactoDetalhe: "Ausência de notícias e sentimento global adverso." },
+            { ticker: "PCAR3", nome: "GPA - Companhia Brasileira de Distribuição", noticias: ["Não foram identificados Fatos Relevantes ou Comunicados ao Mercado no RI ou CVM após o fechamento de 21/05 ou overnight de 22/05."], resultados: "Data do último resultado (1T25) ou previsão para o próximo não especificadas.", recomendacoes: { xp: "Nenhuma análise nova encontrada.", genial: "Nenhuma análise nova encontrada.", outros: "" }, adrs: { ticker: "CBD", exchange: "NYSE", fechamentoOntem: "A ser verificado.", preMercadoHoje: "A ser verificado." }, resumoTable: [ { info: "Último Fato Relevante/Comunicado RI", detalhe: "Não encontrado para o período relevante" } ], impacto: "Neutro a Negativo", impactoDetalhe: "Ausência de notícias e sentimento global adverso." },
+            { ticker: "PETR4", nome: "Petrobras - PN", noticias: ["Não foram identificados Fatos Relevantes ou Comunicados ao Mercado no RI ou CVM após o fechamento de 21/05 ou overnight de 22/05."], resultados: "Data do último resultado (1T25) ou previsão para o próximo não especificadas.", recomendacoes: { xp: "Nenhuma análise nova encontrada.", genial: "Nenhuma análise nova encontrada.", outros: "" }, adrs: { ticker: "PBR", exchange: "NYSE", fechamentoOntem: "A ser verificado.", preMercadoHoje: "A ser verificado." }, resumoTable: [ { info: "Último Fato Relevante/Comunicado RI", detalhe: "Não encontrado para o período relevante" } ], impacto: "Negativo", impactoDetalhe: "Queda do petróleo pode pressionar as ações. Sentimento global adverso." },
+            { ticker: "PRIO3", nome: "PetroRio S.A.", noticias: ["Não foram identificados Fatos Relevantes ou Comunicados ao Mercado no RI ou CVM após o fechamento de 21/05 ou overnight de 22/05."], resultados: "Data do último resultado (1T25) ou previsão para o próximo não especificadas.", recomendacoes: { xp: "Nenhuma análise nova encontrada.", genial: "Nenhuma análise nova encontrada.", outros: "" }, adrs: { ticker: "N/A", exchange: "", fechamentoOntem: "", preMercadoHoje: "" }, resumoTable: [ { info: "Último Fato Relevante/Comunicado RI", detalhe: "Não encontrado para o período relevante" } ], impacto: "Negativo", impactoDetalhe: "Queda do petróleo pode pressionar as ações. Sentimento global adverso." },
+            { ticker: "RADL3", nome: "Raia Drogasil S.A.", noticias: ["Não foram identificados Fatos Relevantes ou Comunicados ao Mercado no RI ou CVM após o fechamento de 21/05 ou overnight de 22/05."], resultados: "Data do último resultado (1T25) ou previsão para o próximo não especificadas.", recomendacoes: { xp: "Nenhuma análise nova encontrada.", genial: "Nenhuma análise nova encontrada.", outros: "" }, adrs: { ticker: "N/A", exchange: "", fechamentoOntem: "", preMercadoHoje: "" }, resumoTable: [ { info: "Último Fato Relevante/Comunicado RI", detalhe: "Não encontrado para o período relevante" } ], impacto: "Neutro a Negativo", impactoDetalhe: "Setor de farmácias geralmente mais resiliente, mas sentimento global pode pesar." },
+            { ticker: "RAIL3", nome: "Rumo S.A.", noticias: ["Não foram identificados Fatos Relevantes ou Comunicados ao Mercado no RI ou CVM após o fechamento de 21/05 ou overnight de 22/05."], resultados: "Data do último resultado (1T25) ou previsão para o próximo não especificadas.", recomendacoes: { xp: "Nenhuma análise nova encontrada.", genial: "Nenhuma análise nova encontrada.", outros: "" }, adrs: { ticker: "N/A", exchange: "", fechamentoOntem: "", preMercadoHoje: "" }, resumoTable: [ { info: "Último Fato Relevante/Comunicado RI", detalhe: "Não encontrado para o período relevante" } ], impacto: "Neutro a Negativo", impactoDetalhe: "Ausência de notícias e sentimento global adverso." },
+            { ticker: "RDOR3", nome: "Rede D'Or São Luiz S.A.", noticias: ["Não foram identificados Fatos Relevantes ou Comunicados ao Mercado no RI ou CVM após o fechamento de 21/05 ou overnight de 22/05."], resultados: "Data do último resultado (1T25) ou previsão para o próximo não especificadas.", recomendacoes: { xp: "Nenhuma análise nova encontrada.", genial: "Nenhuma análise nova encontrada.", outros: "" }, adrs: { ticker: "N/A", exchange: "", fechamentoOntem: "", preMercadoHoje: "" }, resumoTable: [ { info: "Último Fato Relevante/Comunicado RI", detalhe: "Não encontrado para o período relevante" } ], impacto: "Neutro a Negativo", impactoDetalhe: "Ausência de notícias e sentimento global adverso." },
+            { ticker: "RENT3", nome: "Localiza Rent a Car S.A.", noticias: ["Não foram identificados Fatos Relevantes ou Comunicados ao Mercado no RI ou CVM após o fechamento de 21/05 ou overnight de 22/05."], resultados: "Data do último resultado (1T25) ou previsão para o próximo não especificadas.", recomendacoes: { xp: "Nenhuma análise nova encontrada.", genial: "Nenhuma análise nova encontrada.", outros: "" }, adrs: { ticker: "N/A", exchange: "", fechamentoOntem: "", preMercadoHoje: "" }, resumoTable: [ { info: "Último Fato Relevante/Comunicado RI", detalhe: "Não encontrado para o período relevante" } ], impacto: "Neutro a Negativo", impactoDetalhe: "Ausência de notícias e sentimento global adverso." },
+            { ticker: "SANB11", nome: "Santander Brasil - Units", noticias: ["Não foram identificados Fatos Relevantes ou Comunicados ao Mercado no RI ou CVM após o fechamento de 21/05 ou overnight de 22/05."], resultados: "Data do último resultado (1T25) ou previsão para o próximo não especificadas.", recomendacoes: { xp: "Nenhuma análise nova encontrada.", genial: "Nenhuma análise nova encontrada.", outros: "BTG Pactual: Análise de 15/05/2025 sobre TIRs do setor financeiro incluiu SANB11." }, adrs: { ticker: "BSBR", exchange: "NYSE", fechamentoOntem: "A ser verificado.", preMercadoHoje: "A ser verificado." }, resumoTable: [ { info: "Último Fato Relevante/Comunicado RI", detalhe: "Não encontrado para o período relevante" }, { info: "Recomendação BTG (15/05/25)", detalhe: "Análise sobre TIRs do setor financeiro" } ], impacto: "Neutro a Negativo", impactoDetalhe: "Ausência de notícias e sentimento global desfavorável." },
+            { ticker: "SIMH3", nome: "Simpar S.A.", noticias: ["Não foram identificados Fatos Relevantes ou Comunicados ao Mercado no RI ou CVM após o fechamento de 21/05 ou overnight de 22/05."], resultados: "Data do último resultado (1T25) ou previsão para o próximo não especificadas.", recomendacoes: { xp: "Nenhuma análise nova encontrada.", genial: "Nenhuma análise nova encontrada.", outros: "" }, adrs: { ticker: "N/A", exchange: "", fechamentoOntem: "", preMercadoHoje: "" }, resumoTable: [ { info: "Último Fato Relevante/Comunicado RI", detalhe: "Não encontrado para o período relevante" } ], impacto: "Neutro a Negativo", impactoDetalhe: "Ausência de notícias e sentimento global adverso." },
+            { ticker: "SBSP3", nome: "Sabesp - Cia de Saneamento Básico do Estado de SP", noticias: ["Não foram identificados Fatos Relevantes ou Comunicados ao Mercado no RI ou CVM após o fechamento de 21/05 ou overnight de 22/05."], resultados: "Data do último resultado (1T25) ou previsão para o próximo não especificadas.", recomendacoes: { xp: "Nenhuma análise nova encontrada.", genial: "Nenhuma análise nova encontrada.", outros: "" }, adrs: { ticker: "SBS", exchange: "NYSE", fechamentoOntem: "A ser verificado.", preMercadoHoje: "A ser verificado." }, resumoTable: [ { info: "Último Fato Relevante/Comunicado RI", detalhe: "Não encontrado para o período relevante" } ], impacto: "Neutro a Negativo", impactoDetalhe: "Ausência de notícias e sentimento global adverso. Privatização pode trazer volatilidade." },
+            { ticker: "SUZB3", nome: "Suzano S.A.", noticias: ["Não foram identificados Fatos Relevantes ou Comunicados ao Mercado no RI ou CVM após o fechamento de 21/05 ou overnight de 22/05."], resultados: "Data do último resultado (1T25) ou previsão para o próximo não especificadas.", recomendacoes: { xp: "Nenhuma análise nova encontrada.", genial: "Nenhuma análise nova encontrada.", outros: "" }, adrs: { ticker: "SUZBY", exchange: "OTC", fechamentoOntem: "A ser verificado.", preMercadoHoje: "A ser verificado." }, resumoTable: [ { info: "Último Fato Relevante/Comunicado RI", detalhe: "Não encontrado para o período relevante" } ], impacto: "Neutro", impactoDetalhe: "Leve alta diária da celulose na China, mas sentimento global pesa." },
+            { ticker: "TTEN3", nome: "3tentos Agroindustrial S.A.", noticias: ["Não foram identificados Fatos Relevantes ou Comunicados ao Mercado no RI ou CVM após o fechamento de 21/05 ou overnight de 22/05."], resultados: "Data do último resultado (1T25) ou previsão para o próximo não especificadas.", recomendacoes: { xp: "Nenhuma análise nova encontrada.", genial: "Nenhuma análise nova encontrada.", outros: "" }, adrs: { ticker: "N/A", exchange: "", fechamentoOntem: "", preMercadoHoje: "" }, resumoTable: [ { info: "Último Fato Relevante/Comunicado RI", detalhe: "Não encontrado para o período relevante" } ], impacto: "Neutro a Negativo", impactoDetalhe: "Setor agro sensível a commodities e câmbio. Sentimento global adverso." },
+            { ticker: "TIMS3", nome: "TIM S.A.", noticias: ["Não foram identificados Fatos Relevantes ou Comunicados ao Mercado no RI ou CVM após o fechamento de 21/05 ou overnight de 22/05."], resultados: "Data do último resultado (1T25) ou previsão para o próximo não especificadas.", recomendacoes: { xp: "Nenhuma análise nova encontrada.", genial: "Nenhuma análise nova encontrada.", outros: "" }, adrs: { ticker: "TIMB", exchange: "NYSE", fechamentoOntem: "A ser verificado.", preMercadoHoje: "A ser verificado." }, resumoTable: [ { info: "Último Fato Relevante/Comunicado RI", detalhe: "Não encontrado para o período relevante" } ], impacto: "Neutro a Negativo", impactoDetalhe: "Ausência de notícias e sentimento global adverso." },
+            { ticker: "TOTS3", nome: "TOTVS S.A.", noticias: ["Não foram identificados Fatos Relevantes ou Comunicados ao Mercado no RI ou CVM após o fechamento de 21/05 ou overnight de 22/05."], resultados: "Data do último resultado (1T25) ou previsão para o próximo não especificadas.", recomendacoes: { xp: "Nenhuma análise nova encontrada.", genial: "Nenhuma análise nova encontrada.", outros: "" }, adrs: { ticker: "N/A", exchange: "", fechamentoOntem: "", preMercadoHoje: "" }, resumoTable: [ { info: "Último Fato Relevante/Comunicado RI", detalhe: "Não encontrado para o período relevante" } ], impacto: "Neutro a Negativo", impactoDetalhe: "Ausência de notícias e sentimento global adverso." },
+            { ticker: "UGPA3", nome: "Ultrapar Participações S.A.", noticias: ["Não foram identificados Fatos Relevantes ou Comunicados ao Mercado no RI ou CVM após o fechamento de 21/05 ou overnight de 22/05."], resultados: "Data do último resultado (1T25) ou previsão para o próximo não especificadas.", recomendacoes: { xp: "Nenhuma análise nova encontrada.", genial: "Nenhuma análise nova encontrada.", outros: "" }, adrs: { ticker: "UGP", exchange: "NYSE", fechamentoOntem: "A ser verificado.", preMercadoHoje: "A ser verificado." }, resumoTable: [ { info: "Último Fato Relevante/Comunicado RI", detalhe: "Não encontrado para o período relevante" } ], impacto: "Neutro a Negativo", impactoDetalhe: "Ausência de notícias e sentimento global adverso." },
+            { ticker: "VALE3", nome: "Vale S.A.", noticias: ["Não foram identificados Fatos Relevantes ou Comunicados ao Mercado no RI ou CVM após o fechamento de 21/05 ou overnight de 22/05."], resultados: "Data do último resultado (1T25) ou previsão para o próximo não especificadas.", recomendacoes: { xp: "Nenhuma análise nova encontrada.", genial: "Nenhuma análise nova encontrada.", outros: "" }, adrs: { ticker: "VALE", exchange: "NYSE", fechamentoOntem: "A ser verificado.", preMercadoHoje: "A ser verificado." }, resumoTable: [ { info: "Último Fato Relevante/Comunicado RI", detalhe: "Não encontrado para o período relevante" } ], impacto: "Neutro", impactoDetalhe: "Minério de ferro estável/leve alta pode dar suporte, mas sentimento global pesa." },
+            { ticker: "VAMO3", nome: "Vamos Locação de Caminhões, Máquinas e Equipamentos S.A.", noticias: ["Não foram identificados Fatos Relevantes ou Comunicados ao Mercado no RI ou CVM após o fechamento de 21/05 ou overnight de 22/05."], resultados: "Data do último resultado (1T25) ou previsão para o próximo não especificadas.", recomendacoes: { xp: "Nenhuma análise nova encontrada.", genial: "Nenhuma análise nova encontrada.", outros: "" }, adrs: { ticker: "N/A", exchange: "", fechamentoOntem: "", preMercadoHoje: "" }, resumoTable: [ { info: "Último Fato Relevante/Comunicado RI", detalhe: "Não encontrado para o período relevante" } ], impacto: "Neutro a Negativo", impactoDetalhe: "Ausência de notícias e sentimento global adverso." },
+            { ticker: "VBBR3", nome: "Vibra Energia S.A.", noticias: ["Não foram identificados Fatos Relevantes ou Comunicados ao Mercado no RI ou CVM após o fechamento de 21/05 ou overnight de 22/05."], resultados: "Data do último resultado (1T25) ou previsão para o próximo não especificadas.", recomendacoes: { xp: "Nenhuma análise nova encontrada.", genial: "Nenhuma análise nova encontrada.", outros: "" }, adrs: { ticker: "N/A", exchange: "", fechamentoOntem: "", preMercadoHoje: "" }, resumoTable: [ { info: "Último Fato Relevante/Comunicado RI", detalhe: "Não encontrado para o período relevante" } ], impacto: "Neutro a Negativo", impactoDetalhe: "Ausência de notícias e sentimento global adverso." },
+            { ticker: "VIVA3", nome: "Vivara Participações S.A.", noticias: ["Não foram identificados Fatos Relevantes ou Comunicados ao Mercado no RI ou CVM após o fechamento de 21/05 ou overnight de 22/05."], resultados: "Data do último resultado (1T25) ou previsão para o próximo não especificadas.", recomendacoes: { xp: "Nenhuma análise nova encontrada.", genial: "Nenhuma análise nova encontrada.", outros: "" }, adrs: { ticker: "N/A", exchange: "", fechamentoOntem: "", preMercadoHoje: "" }, resumoTable: [ { info: "Último Fato Relevante/Comunicado RI", detalhe: "Não encontrado para o período relevante" } ], impacto: "Neutro a Negativo", impactoDetalhe: "Varejo de luxo pode ser mais resiliente, mas sentimento global pesa." },
+            { ticker: "VIVT3", nome: "Telefônica Brasil S.A. (Vivo)", noticias: ["Não foram identificados Fatos Relevantes ou Comunicados ao Mercado no RI ou CVM após o fechamento de 21/05 ou overnight de 22/05."], resultados: "Data do último resultado (1T25) ou previsão para o próximo não especificadas.", recomendacoes: { xp: "Nenhuma análise nova encontrada.", genial: "Nenhuma análise nova encontrada.", outros: "" }, adrs: { ticker: "VIV", exchange: "NYSE", fechamentoOntem: "A ser verificado.", preMercadoHoje: "A ser verificado." }, resumoTable: [ { info: "Último Fato Relevante/Comunicado RI", detalhe: "Não encontrado para o período relevante" } ], impacto: "Neutro a Negativo", impactoDetalhe: "Ausência de notícias e sentimento global adverso." },
+            { ticker: "WEGE3", nome: "WEG S.A.", noticias: ["Não foram identificados Fatos Relevantes ou Comunicados ao Mercado no RI ou CVM após o fechamento de 21/05 ou overnight de 22/05."], resultados: "Data do último resultado (1T25) ou previsão para o próximo não especificadas.", recomendacoes: { xp: "Nenhuma análise nova encontrada.", genial: "Nenhuma análise nova encontrada.", outros: "" }, adrs: { ticker: "WEGZY", exchange: "OTC", fechamentoOntem: "A ser verificado.", preMercadoHoje: "A ser verificado." }, resumoTable: [ { info: "Último Fato Relevante/Comunicado RI", detalhe: "Não encontrado para o período relevante" } ], impacto: "Neutro a Negativo", impactoDetalhe: "Ausência de notícias e sentimento global adverso." },
+            { ticker: "YDUQ3", nome: "YDUQS Participações S.A.", noticias: ["Não foram identificados Fatos Relevantes ou Comunicados ao Mercado no RI ou CVM após o fechamento de 21/05 ou overnight de 22/05."], resultados: "Data do último resultado (1T25) ou previsão para o próximo não especificadas.", recomendacoes: { xp: "Nenhuma análise nova encontrada.", genial: "Nenhuma análise nova encontrada.", outros: "" }, adrs: { ticker: "N/A", exchange: "", fechamentoOntem: "", preMercadoHoje: "" }, resumoTable: [ { info: "Último Fato Relevante/Comunicado RI", detalhe: "Não encontrado para o período relevante" } ], impacto: "Neutro a Negativo", impactoDetalhe: "Setor educacional sensível ao cenário econômico. Sentimento global adverso." }
+        ];
+        
+        const allTickers = stocksRawData.map(stock => stock.ticker).sort();
+
+
+        function openTab(event, tabName) {
+            let i, tabcontent, tablinks;
+            tabcontent = document.getElementsByClassName("tab-content");
+            for (i = 0; i < tabcontent.length; i++) {
+                tabcontent[i].classList.add("hidden");
+            }
+            tablinks = document.getElementsByClassName("tab-button");
+            for (i = 0; i < tablinks.length; i++) {
+                tablinks[i].classList.remove("active", "border-sky-600", "text-sky-600");
+                tablinks[i].classList.add("border-transparent", "hover:border-sky-500", "hover:text-sky-500");
+            }
+            document.getElementById(tabName).classList.remove("hidden");
+            event.currentTarget.classList.add("active", "border-sky-600", "text-sky-600");
+            event.currentTarget.classList.remove("border-transparent", "hover:border-sky-500", "hover:text-sky-500");
+
+            if (tabName === 'brasil') {
+                renderKeyIndicatorsChart();
+            }
+        }
+
+        function populateKeyIndicatorsTable() {
+            const tableBody = document.getElementById('keyIndicatorsTableBody');
+            tableBody.innerHTML = ''; 
+            keyIndicatorsData.forEach(item => {
+                const row = tableBody.insertRow();
+                const cellIndicator = row.insertCell();
+                const cellValue = row.insertCell();
+                const cellVariation = row.insertCell();
+
+                cellIndicator.textContent = item.indicador;
+                cellIndicator.className = 'px-4 py-2 whitespace-nowrap text-sm text-gray-700';
+                cellValue.textContent = item.valor;
+                cellValue.className = 'px-4 py-2 whitespace-nowrap text-sm text-gray-700';
+                
+                let variationText = item.variacao;
+                let textColor = 'text-gray-700';
+                if (variationText.includes('Queda') || variationText.startsWith('-')) {
+                    textColor = 'text-red-600';
+                } else if (variationText.includes('Alta') || variationText.startsWith('+')) {
+                    textColor = 'text-green-600';
+                }
+                cellVariation.innerHTML = `<span class="font-semibold ${textColor}">${variationText}</span>`;
+                cellVariation.className = 'px-4 py-2 whitespace-nowrap text-sm';
+            });
+        }
+        
+        let keyIndicatorsChartInstance = null;
+        function renderKeyIndicatorsChart() {
+            if (keyIndicatorsChartInstance) {
+                keyIndicatorsChartInstance.destroy();
+            }
+            const ctx = document.getElementById('indicadoresChaveChart').getContext('2d');
+            
+            const labels = [];
+            const dataPoints = [];
+            const backgroundColors = [];
+
+            const relevantIndicatorsForChart = keyIndicatorsData.filter(item => {
+                // Filter for items with clear percentage values
+                return item.variacao.match(/([+-]?\d+(\.\d+)?%)/);
+            });
+
+            relevantIndicatorsForChart.forEach(item => {
+                labels.push(item.indicador.split('(')[0].trim()); // Shorter label
+                const match = item.variacao.match(/([+-]?\d+(\.\d+)?%)/);
+                if (match) {
+                    const percentage = parseFloat(match[1].replace('%', ''));
+                    dataPoints.push(percentage);
+                    backgroundColors.push(percentage >= 0 ? 'rgba(75, 192, 192, 0.7)' : 'rgba(255, 99, 132, 0.7)');
+                } else { // Fallback for items like "Estável" or ranges
+                    dataPoints.push(0); 
+                    backgroundColors.push('rgba(201, 203, 207, 0.7)'); // Grey for neutral/complex
+                }
+            });
+
+            keyIndicatorsChartInstance = new Chart(ctx, {
+                type: 'bar', // Changed to bar for better readability with many items
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Variação %',
+                        data: dataPoints,
+                        backgroundColor: backgroundColors,
+                        borderColor: backgroundColors.map(color => color.replace('0.7', '1')),
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    indexAxis: 'y', // Horizontal bar chart
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        x: {
+                            beginAtZero: true,
+                            title: {
+                                display: true,
+                                text: 'Variação Percentual (%)'
+                            }
+                        },
+                        y: {
+                           ticks: {
+                                autoSkip: false, // Ensure all labels are shown
+                                maxRotation: 0,
+                                minRotation: 0,
+                                callback: function(value, index, values) {
+                                    // Basic label wrapping logic (Chart.js v3+)
+                                    const label = this.getLabelForValue(value);
+                                    if (label.length > 16) { // Max chars before trying to split
+                                        const words = label.split(' ');
+                                        let lines = [''];
+                                        let currentLine = 0;
+                                        words.forEach(word => {
+                                            if ((lines[currentLine] + word).length > 16) {
+                                                currentLine++;
+                                                lines[currentLine] = '';
+                                            }
+                                            lines[currentLine] += word + ' ';
+                                        });
+                                        return lines.map(l => l.trim());
+                                    }
+                                    return label;
+                                }
+                           }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            display: false // Or true if you want to show the legend
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return `${context.dataset.label}: ${context.raw.toFixed(2)}%`;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        function displayStockDetail(ticker) {
+            const stock = stocksRawData.find(s => s.ticker === ticker);
+            const detailArea = document.getElementById('stockDetailArea');
+            if (!stock) {
+                detailArea.innerHTML = '<p class="text-red-500 text-center">Detalhes não encontrados para este ticker.</p>';
+                return;
+            }
+
+            let impactIcon = '⚪';
+            let impactColor = 'text-gray-600';
+            if (stock.impacto.toLowerCase().includes('positivo')) {
+                impactIcon = '🟢'; // ▲
+                impactColor = 'text-green-600';
+            } else if (stock.impacto.toLowerCase().includes('negativo')) {
+                impactIcon = '🔴'; // ▼
+                impactColor = 'text-red-600';
+            } else if (stock.impacto.toLowerCase().includes('volatilidade')) {
+                impactIcon = '⚠️';
+                impactColor = 'text-yellow-600';
+            }
+
+
+            let adrText = 'Não informado.';
+            if (stock.adrs && stock.adrs.ticker && stock.adrs.ticker !== 'N/A') {
+                adrText = `Ticker: ${stock.adrs.ticker} (${stock.adrs.exchange || 'N/A'})<br>Fech. Ontem: ${stock.adrs.fechamentoOntem}<br>Pré-Mercado Hoje: ${stock.adrs.preMercadoHoje}`;
+            }
+            
+            detailArea.innerHTML = `
+                <h2 class="text-2xl font-bold text-sky-700 mb-1">${stock.ticker} - ${stock.nome}</h2>
+                <div class="mb-3">
+                    <span class="text-lg font-semibold ${impactColor}">${impactIcon} Impacto Esperado: ${stock.impacto}</span>
+                    <p class="text-sm text-gray-600">${stock.impactoDetalhe}</p>
+                </div>
+
+                <div class="space-y-3 text-sm">
+                    <div>
+                        <h4 class="font-semibold text-sky-600">Notícias Corporativas (RI/CVM):</h4>
+                        <ul class="list-disc list-inside text-gray-700 pl-4">
+                            ${stock.noticias.map(n => `<li>${n}</li>`).join('')}
+                        </ul>
+                    </div>
+                    <div>
+                        <h4 class="font-semibold text-sky-600">Resultados Trimestrais/Anuais:</h4>
+                        <p class="text-gray-700">${stock.resultados}</p>
+                    </div>
+                    <div>
+                        <h4 class="font-semibold text-sky-600">Recomendações de Analistas:</h4>
+                        <p class="text-gray-700"><strong>XP:</strong> ${stock.recomendacoes.xp}</p>
+                        <p class="text-gray-700"><strong>Genial:</strong> ${stock.recomendacoes.genial}</p>
+                        ${stock.recomendacoes.outros ? `<p class="text-gray-700"><strong>Outros:</strong> ${stock.recomendacoes.outros}</p>` : ''}
+                    </div>
+                    <div>
+                        <h4 class="font-semibold text-sky-600">ADRs:</h4>
+                        <p class="text-gray-700">${adrText}</p>
+                    </div>
+                    <div>
+                        <h4 class="font-semibold text-sky-600 mt-2">Tabela Resumo ${stock.ticker}:</h4>
+                        <div class="overflow-x-auto mt-1">
+                            <table class="min-w-full divide-y divide-gray-200 border border-gray-200">
+                                <thead class="bg-gray-50">
+                                    <tr>
+                                        <th class="px-3 py-1.5 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Informação</th>
+                                        <th class="px-3 py-1.5 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Detalhe</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="bg-white divide-y divide-gray-200">
+                                    ${stock.resumoTable.map(row => `<tr><td class="px-3 py-1.5 whitespace-normal text-xs text-gray-700">${row.info}</td><td class="px-3 py-1.5 whitespace-normal text-xs text-gray-700">${row.detalhe}</td></tr>`).join('')}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+        
+        function renderStockList(filter = '') {
+            const stockListDiv = document.getElementById('stockList');
+            const stockLoader = document.getElementById('stockLoader');
+            stockLoader.classList.remove('hidden');
+            stockListDiv.innerHTML = ''; // Clear previous list items except loader
+
+            // Simulate loading
+            setTimeout(() => {
+                const filteredTickers = allTickers.filter(ticker => ticker.toLowerCase().includes(filter.toLowerCase()));
+                
+                if (filteredTickers.length === 0 && filter !== '') {
+                     stockListDiv.innerHTML = '<p class="text-gray-500 text-center p-2">Nenhuma ação encontrada.</p>';
+                } else if (filteredTickers.length === 0 && filter === '') { // Should not happen if allTickers is populated
+                     stockListDiv.innerHTML = '<p class="text-gray-500 text-center p-2">Nenhuma ação para exibir.</p>';
+                }
+
+                filteredTickers.forEach(ticker => {
+                    const button = document.createElement('button');
+                    button.className = 'w-full text-left p-2.5 bg-sky-50 hover:bg-sky-100 rounded-md text-sky-700 font-medium transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-sky-500';
+                    button.textContent = ticker;
+                    button.onclick = () => {
+                        displayStockDetail(ticker);
+                        // Highlight selected button
+                        document.querySelectorAll('#stockList button').forEach(btn => btn.classList.remove('bg-sky-200', 'text-sky-800', 'font-bold'));
+                        button.classList.add('bg-sky-200', 'text-sky-800', 'font-bold');
+                    };
+                    stockListDiv.appendChild(button);
+                });
+                stockLoader.classList.add('hidden');
+            }, 20); // Short delay to show loader
+        }
+
+
+        document.getElementById('stockSearchInput').addEventListener('input', (e) => {
+            renderStockList(e.target.value);
+        });
+
+        // Initial setup
+        document.addEventListener('DOMContentLoaded', () => {
+            document.querySelector('.tab-button').click(); // Open the first tab
+            populateKeyIndicatorsTable();
+            renderStockList(); // Initial render of all stock tickers
+            // The chart for 'brasil' tab will be rendered when the tab is clicked.
+        });
+
+    </script>
+</body>
+</html>

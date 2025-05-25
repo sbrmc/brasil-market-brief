@@ -1,0 +1,1171 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Relatório Interativo Pré-Mercado B3 - 23/05/2025</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Visualization & Content Choices:
+        - Panorama Global: Text summaries, collapsible sections (HTML/Tailwind + JS for collapse). Goal: Inform. Justification: Digestible overview.
+        - Indicadores Chave: HTML table. Goal: Inform/Compare. Justification: Standard for tabular data.
+        - Notícias e Medidas: Text blocks (HTML/Tailwind). Goal: Inform. Justification: Contextual news.
+        - Análise de Ações (Stock Selector): Dropdown (HTML + JS). Goal: Navigate/Filter. Justification: Efficient access.
+        - Análise de Ações (Stock Details - Text): HTML paragraphs, lists. Goal: Inform. Justification: Detailed textual info.
+        - Análise de Ações (Stock Details - Summary Table): HTML table. Goal: Summarize. Justification: Quick stock stats.
+        - Análise de Ações (Stock Details - Analyst Price Targets): Chart.js Bar Chart on Canvas. Goal: Compare. Interaction: Tooltips. Justification: Visual comparison of analyst ratings. Data: Price targets from XP, Genial.
+        - CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 320px;
+            max-height: 400px;
+        }
+        @media (min-width: 768px) {
+            .chart-container {
+                height: 350px;
+            }
+        }
+        .nav-button {
+            @apply px-4 py-2 text-sm font-medium text-stone-700 hover:bg-sky-100 hover:text-sky-700 rounded-md transition-colors;
+        }
+        .nav-button.active {
+            @apply bg-sky-600 text-white hover:bg-sky-700;
+        }
+        .section-title {
+            @apply text-2xl font-semibold text-sky-700 mb-4 border-b-2 border-sky-200 pb-2;
+        }
+        .card {
+            @apply bg-white p-6 rounded-lg shadow-lg mb-6;
+        }
+        .card-title {
+            @apply text-xl font-semibold text-sky-600 mb-3;
+        }
+        .tab-button {
+            @apply px-4 py-2 text-sm font-medium text-stone-600 hover:bg-stone-200 hover:text-stone-800 rounded-t-md border-b-2 border-transparent;
+        }
+        .tab-button.active {
+            @apply border-sky-600 text-sky-700 font-semibold;
+        }
+        /* Custom scrollbar for better aesthetics */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 10px;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1; /* slate-300 */
+            border-radius: 10px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8; /* slate-500 */
+        }
+    </style>
+</head>
+<body class="bg-stone-100 text-stone-800">
+
+    <div class="container mx-auto p-4 ">
+        <header class="bg-white shadow-md rounded-lg p-4 mb-6">
+            <h1 class="text-3xl font-bold text-sky-700 text-center">Relatório Interativo Pré-Mercado B3</h1>
+            <p class="text-center text-stone-600 text-sm">Análise de Abertura – 23 de Maio de 2025</p>
+        </header>
+
+        <nav class="bg-white shadow-md rounded-lg p-2 mb-6 flex flex-wrap justify-center space-x-1 md:space-x-2">
+            <button class="nav-button active" onclick="showSection('panoramaGlobal')">Panorama Global</button>
+            <button class="nav-button" onclick="showSection('indicadoresChave')">Indicadores Chave</button>
+            <button class="nav-button" onclick="showSection('noticiasMedidas')">Notícias e Medidas</button>
+            <button class="nav-button" onclick="showSection('analiseAcoes')">Análise de Ações</button>
+        </nav>
+
+        <main>
+            <section id="panoramaGlobal" class="content-section card">
+                <h2 class="section-title">Panorama Global e Abertura de Mercado</h2>
+                <p class="mb-4 text-stone-700">Esta seção apresenta uma visão geral do cenário macroeconômico global e dos principais mercados internacionais, além de uma análise do impacto esperado na abertura da B3. Explore os desempenhos dos mercados americano, asiático e europeu, a movimentação de futuros e commodities, e as decisões recentes de bancos centrais.</p>
+
+                <div class="mb-4">
+                    <h3 class="card-title">Impacto Esperado na Abertura da B3 (23/05/2025): Misto com Viés Cauteloso a Ligeiramente Positivo.</h3>
+                    <p class="text-sm text-stone-600 leading-relaxed">
+                        A abertura do pregão da B3 nesta sexta-feira deve ser marcada por um sentimento misto, pendendo para cauteloso a ligeiramente positivo.
+                        <br><strong>Fatores Positivos:</strong> A recuperação observada na abertura dos mercados europeus, algum otimismo decorrente das conversas entre autoridades dos EUA e da China, e a estabilidade com leve recuperação nos preços de commodities importantes como petróleo e minério de ferro podem oferecer suporte. A fraqueza global do dólar (refletida no índice DXY) também poderia, em tese, beneficiar o Real.
+                        <br><strong>Fatores Negativos/Cautela:</strong> O fechamento predominantemente negativo nos EUA no dia anterior, motivado por preocupações fiscais, serve como um ponto de atenção. No cenário doméstico, o anúncio do congelamento orçamentário e do aumento do IOF pelo governo brasileiro [34] tende a pesar sobre o sentimento dos investidores e pode impactar negativamente setores específicos. A volatilidade registrada nos contratos futuros de dólar e índice no pregão anterior também sugere cautela.
+                        <br>Espera-se uma abertura volátil, com os investidores processando o conjunto de notícias globais e as implicações das medidas fiscais domésticas. Setores sensíveis a juros e crédito, como varejo, construção civil e bancos, podem reagir negativamente ao aumento do IOF. Por outro lado, empresas exportadoras de commodities podem encontrar algum suporte se a recuperação das cotações internacionais e a fraqueza do DXY se traduzirem em um Real mais desvalorizado ou estável em um patamar que favoreça suas receitas.
+                    </p>
+                </div>
+
+                <div>
+                    <button onclick="toggleCollapse('mercadoAmericanoContent')" class="w-full text-left bg-sky-50 hover:bg-sky-100 p-3 rounded-md font-semibold text-sky-700 transition-colors mb-2 focus:outline-none">
+                        Mercado Americano (Fechamento 22/05/2025) <span class="float-right" id="mercadoAmericanoContentToggleIcon">+</span>
+                    </button>
+                    <div id="mercadoAmericanoContent" class="hidden overflow-hidden transition-all duration-500 ease-in-out">
+                        <div class="p-3 border rounded-b-md bg-white">
+                            <p class="text-sm text-stone-600 leading-relaxed">As bolsas de valores dos Estados Unidos apresentaram um fechamento majoritariamente negativo no pregão de quinta-feira, 22 de maio de 2025, caracterizado pela volatilidade. A principal fonte de apreensão entre os investidores foram as crescentes preocupações com o endividamento do governo americano, exacerbadas pela aprovação na Câmara de um projeto de lei com potencial de adicionar trilhões de dólares à dívida pública do país.[1, 2] O S&P 500 encerrou o dia cotado a 5.842,01 pontos (-0,1%).[1, 3] O Dow Jones fechou em 41.859,09 pontos (-0,1%).[1] O Nasdaq Composite avançou 0,3% para 18.925,73 pontos.[1, 4] O rendimento do Treasury de 10 anos recuou para 4,53%.[2, 4]</p>
+                        </div>
+                    </div>
+                </div>
+                 <div>
+                    <button onclick="toggleCollapse('mercadosAsiaticosContent')" class="w-full text-left bg-sky-50 hover:bg-sky-100 p-3 rounded-md font-semibold text-sky-700 transition-colors mb-2 focus:outline-none">
+                        Mercados Asiáticos (Madrugada e Manhã de 23/05/2025) <span class="float-right" id="mercadosAsiaticosContentToggleIcon">+</span>
+                    </button>
+                    <div id="mercadosAsiaticosContent" class="hidden overflow-hidden transition-all duration-500 ease-in-out">
+                        <div class="p-3 border rounded-b-md bg-white">
+                            <p class="text-sm text-stone-600 leading-relaxed">Desempenho misto. Nikkei 225 do Japão em alta (+0,8% a +0,99%) [4, 5] por dados de inflação. Ações chinesas (CSI300) com alta semanal de 0,9% [4]; CSI 300 +0,07%, Shanghai Composite +0,01% na sexta.[5] Hang Seng de Hong Kong +0,34%.[5] S&P/ASX 200 da Austrália +0,34%.[5] Otimismo com tensões EUA-China e estímulos chineses.</p>
+                        </div>
+                    </div>
+                </div>
+                <div>
+                    <button onclick="toggleCollapse('mercadosEuropeusContent')" class="w-full text-left bg-sky-50 hover:bg-sky-100 p-3 rounded-md font-semibold text-sky-700 transition-colors mb-2 focus:outline-none">
+                        Mercados Europeus (Abertura 23/05/2025 e Fechamento 22/05/2025) <span class="float-right" id="mercadosEuropeusContentToggleIcon">+</span>
+                    </button>
+                    <div id="mercadosEuropeusContent" class="hidden overflow-hidden transition-all duration-500 ease-in-out">
+                        <div class="p-3 border rounded-b-md bg-white">
+                             <p class="text-sm text-stone-600 leading-relaxed">Quinta-feira (22/05) com perdas acentuadas: STOXX 50 -0,55%, DAX -0,51%, CAC 40 -0,58%, FTSE 100 -0,54%.[4, 6] Sexta-feira (23/05) abertura em recuperação: FTSE 100 +0,4%, CAC 40 +0,1%, DAX 40 +0,5% [7], ajudados por arrefecimento nos rendimentos dos Treasuries e dados de varejo do Reino Unido.</p>
+                        </div>
+                    </div>
+                </div>
+                <div>
+                    <button onclick="toggleCollapse('futurosAmericanosContent')" class="w-full text-left bg-sky-50 hover:bg-sky-100 p-3 rounded-md font-semibold text-sky-700 transition-colors mb-2 focus:outline-none">
+                        Futuros Americanos (Manhã de 23/05/2025) <span class="float-right" id="futurosAmericanosContentToggleIcon">+</span>
+                    </button>
+                    <div id="futurosAmericanosContent" class="hidden overflow-hidden transition-all duration-500 ease-in-out">
+                        <div class="p-3 border rounded-b-md bg-white">
+                            <p class="text-sm text-stone-600 leading-relaxed">Estabilidade. Futuros do S&P 500 planos ("flat").[4] Análise técnica da Investtech: "compra" para Nasdaq (médio a longo prazo).[8] Dow Jones futuros com recuo de 0,5% (informação preliminar).[2]</p>
+                        </div>
+                    </div>
+                </div>
+                <div>
+                    <button onclick="toggleCollapse('commoditiesContent')" class="w-full text-left bg-sky-50 hover:bg-sky-100 p-3 rounded-md font-semibold text-sky-700 transition-colors mb-2 focus:outline-none">
+                        Commodities Chave (Overnight e Manhã de 23/05/2025) <span class="float-right" id="commoditiesContentToggleIcon">+</span>
+                    </button>
+                    <div id="commoditiesContent" class="hidden overflow-hidden transition-all duration-500 ease-in-out">
+                        <div class="p-3 border rounded-b-md bg-white">
+                            <p class="text-sm text-stone-600 leading-relaxed"><strong>Petróleo:</strong> Brent US$ 64,52 (+0,12%) [11], WTI US$ 61,25 (+0,08%) [11]. Tendência mista com leve viés positivo.
+                            <br><strong>Minério de Ferro:</strong> (62% Fe, CFR China) US$ 99,89 (estável) [10]. Futuros na DCE com alta de 0,14% (22/05).[13]
+                            <br><strong>Celulose:</strong> Preços globais em alta (abril/25), terceiro mês consecutivo.[15] CAGR de 8,1% para acetato de celulose até 2029.[16]</p>
+                        </div>
+                    </div>
+                </div>
+                <div>
+                    <button onclick="toggleCollapse('dolarContent')" class="w-full text-left bg-sky-50 hover:bg-sky-100 p-3 rounded-md font-semibold text-sky-700 transition-colors mb-2 focus:outline-none">
+                        Dólar (Índice DXY e Dólar Futuro Brasil) <span class="float-right" id="dolarContentToggleIcon">+</span>
+                    </button>
+                    <div id="dolarContent" class="hidden overflow-hidden transition-all duration-500 ease-in-out">
+                        <div class="p-3 border rounded-b-md bg-white">
+                            <p class="text-sm text-stone-600 leading-relaxed"><strong>Índice DXY:</strong> Em queda, ~99,36 (-0,60%) [18, 19]. Perspectiva de queda semanal acentuada.[18]
+                            <br><strong>Dólar Futuro (Brasil - WDOM25):</strong> Contrato BRL/USD na CME Globex (jun/25) indicava queda de 1,16% para o dólar frente ao real (00:11 CT 23/05).[21] No mercado doméstico, dólar à vista fechou 22/05 a R$ 5,6611 (+0,35%). Futuros (WDOM25) fecharam 22/05 com forte alta de 1,90% a 5.765 pts.[22] Análise InfoMoney (WDOM25): forte reversão altista, viés de alta no curtíssimo prazo. Resistência: 5.783,5/5.795,5. Suporte: 5.753/5.733.[22]</p>
+                        </div>
+                    </div>
+                </div>
+                <div>
+                    <button onclick="toggleCollapse('ibovFuturoContent')" class="w-full text-left bg-sky-50 hover:bg-sky-100 p-3 rounded-md font-semibold text-sky-700 transition-colors mb-2 focus:outline-none">
+                        Índice Bovespa Futuro (Manhã de 23/05/2025) <span class="float-right" id="ibovFuturoContentToggleIcon">+</span>
+                    </button>
+                    <div id="ibovFuturoContent" class="hidden overflow-hidden transition-all duration-500 ease-in-out">
+                        <div class="p-3 border rounded-b-md bg-white">
+                            <p class="text-sm text-stone-600 leading-relaxed">Ibovespa (22/05): -0,44%.[24] Ibovespa Futuro (WINc1, Investing.com): 136.290 pts. Abertura 139.065, Fech. Anterior 138.432. Análise técnica "Forte Venda" (diário).[25] Mini Índice (WINM25, TradingView): 138.430 (fech. anterior), rating técnico "Compra".[26]</p>
+                        </div>
+                    </div>
+                </div>
+                <div>
+                    <button onclick="toggleCollapse('macroGeoContent')" class="w-full text-left bg-sky-50 hover:bg-sky-100 p-3 rounded-md font-semibold text-sky-700 transition-colors mb-2 focus:outline-none">
+                        Principais Notícias Macroeconômicas e Geopolíticas <span class="float-right" id="macroGeoContentToggleIcon">+</span>
+                    </button>
+                    <div id="macroGeoContent" class="hidden overflow-hidden transition-all duration-500 ease-in-out">
+                        <div class="p-3 border rounded-b-md bg-white">
+                            <ul class="list-disc list-inside text-sm text-stone-600 leading-relaxed space-y-1">
+                                <li><strong>Inflação no Japão:</strong> CPI anual 3,6% (abril), núcleo 3,5%.[4]</li>
+                                <li><strong>Dados dos EUA:</strong> PMI Composto S&P Global 52,1 (maio) vs 50,6 (abril).[4] Pedidos de seguro-desemprego 227.000.[4]</li>
+                                <li><strong>Relações EUA-China:</strong> Conversas bilaterais para manter comunicação; vice-premiê chinês apoia laços comerciais com EUA.[5]</li>
+                                <li><strong>Preocupações Fiscais nos EUA:</strong> Moody's rebaixa nota de crédito para Aa1.[4] Proposta orçamentária com aumento de déficit no radar.[1, 2]</li>
+                                <li><strong>Europa:</strong> Previsão CE: PIB UE +1,1%, Zona Euro +0,9% em 2025. Inflação Zona Euro convergindo para meta em meados de 2025.[14]</li>
+                                <li><strong>Geopolítica:</strong> Tensões China-EUA (defesa antimísseis) [27], ajuda humanitária em Gaza [27], alerta de estagflação nos EUA (JPMorgan CEO) [28].</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                 <div>
+                    <button onclick="toggleCollapse('bancosCentraisContent')" class="w-full text-left bg-sky-50 hover:bg-sky-100 p-3 rounded-md font-semibold text-sky-700 transition-colors mb-2 focus:outline-none">
+                        Decisões de Bancos Centrais (FED, BCB) <span class="float-right" id="bancosCentraisContentToggleIcon">+</span>
+                    </button>
+                    <div id="bancosCentraisContent" class="hidden overflow-hidden transition-all duration-500 ease-in-out">
+                        <div class="p-3 border rounded-b-md bg-white">
+                             <p class="text-sm text-stone-600 leading-relaxed"><strong>Federal Reserve (FED):</strong> Juros mantidos (4,25%-4,50%) em maio/25, postura "esperar para ver".[29] Riscos de inflação e desemprego aumentaram.[29] Discursos de membros do Fed agendados para 23/05.[30, 31]
+                            <br><strong>Banco Central do Brasil (BCB):</strong> Desaceleração no ritmo de aperto monetário em maio/25 (alta da Selic, magnitude não especificada).[32] Inflação acima da meta, projeção para 2025 revisada para 4,8%.[32] Sem guidance explícito.[32] Presidente e diretor do BCB com palestras em 23/05.[31]</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section id="indicadoresChave" class="content-section card hidden">
+                <h2 class="section-title">Tabela Resumo: Indicadores Chave Overnight</h2>
+                <p class="mb-4 text-stone-700">Confira os principais indicadores de mercado acompanhados, com seus últimos valores e tendências observadas antes da abertura do pregão de hoje.</p>
+                <div class="overflow-x-auto">
+                    <table class="min-w-full bg-white border border-stone-200">
+                        <thead class="bg-sky-50">
+                            <tr>
+                                <th class="px-4 py-2 border-b text-left text-xs font-semibold text-sky-700 uppercase tracking-wider">Indicador</th>
+                                <th class="px-4 py-2 border-b text-left text-xs font-semibold text-sky-700 uppercase tracking-wider">Último Valor (Aprox.)</th>
+                                <th class="px-4 py-2 border-b text-left text-xs font-semibold text-sky-700 uppercase tracking-wider">Variação / Tendência</th>
+                            </tr>
+                        </thead>
+                        <tbody class="text-stone-700 text-sm" id="indicadoresTableBody">
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <section id="noticiasMedidas" class="content-section card hidden">
+                <h2 class="section-title">Notícias Setoriais de Impacto e Medidas Governamentais</h2>
+                <p class="mb-4 text-stone-700">Esta seção detalha notícias relevantes que podem impactar setores específicos da B3, bem como recentes medidas governamentais e seus potenciais reflexos no mercado.</p>
+                
+                <div class="mb-6">
+                    <h3 class="card-title">Medidas Fiscais do Governo Brasileiro</h3>
+                    <p class="text-sm text-stone-600 leading-relaxed">Na noite de 22 de maio de 2025, o governo federal anunciou um conjunto de medidas com o objetivo de cumprir a meta de déficit fiscal zero para o ano. Essas medidas incluem um congelamento de R$ 31,3 bilhões em despesas do Orçamento.[34] Paralelamente, foi anunciado um aumento na alíquota do Imposto sobre Operações Financeiras (IOF), com impacto em diversas operações, incluindo cartão de crédito internacional, remessas para o exterior e previdência privada. A medida entrou em vigor na data do anúncio.[34] Instituições financeiras já manifestaram descontentamento com a falta de diálogo prévio sobre a alteração do IOF.[31]</p>
+                </div>
+
+                <div class="mb-6">
+                    <h3 class="card-title">Impactos Setoriais Potenciais das Medidas Fiscais</h3>
+                     <ul class="list-disc list-inside text-sm text-stone-600 leading-relaxed space-y-1">
+                        <li><strong>Setor Bancário (BBAS3, BBDC4, BPAC11, ITSA4, ITUB4, SANB11):</strong> Impacto do IOF no volume de operações. BBAS3 aprovou JCP de R$ 516,3 milhões.[35]</li>
+                        <li><strong>Setor de Varejo (ASAI3, CRFB3, LREN3, MGLU3, PCAR3, VIVA3):</strong> Medidas podem minar confiança e poder de compra, apesar de 1T25 melhor que o esperado.[36]</li>
+                        <li><strong>Setor de Mineração e Siderurgia (CSNA3, CMIN3, GGBR4, GOAU4, VALE3):</strong> Indústria siderúrgica pressionada por importações.[37] Estabilidade do minério de ferro oferece alívio.</li>
+                        <li><strong>Setor de Papel e Celulose (KLBN11, SUZB3):</strong> Bradesco BBI vê perspectivas de recuperação para preços da celulose, preferência por Suzano.[38] Tendência global de alta.[15, 16]</li>
+                        <li><strong>Setor de Óleo e Gás (PETR4, PRIO3, UGPA3, VBBR3):</strong> Petrobras assinou acordo com Proquigel (22/05).[39] Preços do petróleo com leve recuperação.</li>
+                        <li><strong>Setor de Energia Elétrica (CMIG4, CPLE6, ELET3, ELET6, EQTL3):</strong> Itaú BBA cauteloso com nova MP para o setor.[40] Previsão de aumento médio de 2,64% nas contas de energia para 2025.[41]</li>
+                        <li><strong>Setor Aéreo (AZUL4, EMBR3):</strong> ANAC: crescimento de 9,6% na movimentação aérea em abril.[42]</li>
+                        <li><strong>Setor de Saúde (FLRY3, HAPV3, RDOR3, RADL3):</strong> ANS apresentou novas propostas para planos de saúde.[43]</li>
+                        <li><strong>Setor de Educação (YDUQ3):</strong> MEC definiu novas regras para cursos EAD.[44, 45]</li>
+                    </ul>
+                </div>
+                 <div>
+                    <h3 class="card-title">Regulamentação CVM/B3</h3>
+                    <p class="text-sm text-stone-600 leading-relaxed">A CVM prorrogou a entrada em vigor das novas regras de portabilidade de investimentos para 2026.[46, 47]</p>
+                </div>
+            </section>
+
+            <section id="analiseAcoes" class="content-section card hidden">
+                <h2 class="section-title">Análise Detalhada das Ações Monitoradas</h2>
+                <p class="mb-4 text-stone-700">Selecione uma ação da lista abaixo para visualizar uma análise detalhada, incluindo notícias corporativas, resultados, recomendações de analistas e o impacto esperado na abertura do pregão de hoje.</p>
+                
+                <div class="mb-6">
+                    <label for="stockSelector" class="block text-sm font-medium text-stone-700 mb-1">Selecione uma Ação:</label>
+                    <select id="stockSelector" class="w-full p-2 border border-stone-300 rounded-md shadow-sm focus:ring-sky-500 focus:border-sky-500">
+                        <option value="">-- Escolha uma Ação --</option>
+                    </select>
+                </div>
+
+                <div id="stockDetail" class="mt-6">
+                </div>
+            </section>
+        </main>
+
+        <footer class="text-center text-sm text-stone-500 mt-8 py-4 border-t border-stone-200">
+            <p>&copy; 2025 Relatório Interativo. Informações para fins educacionais.</p>
+            <p>Dados extraídos do "Relatório Pré-Mercado B3: Análise de Abertura – 23 de Maio de 2025".</p>
+        </footer>
+    </div>
+
+    <script>
+        const stockData = {
+            "ABEV3": {
+                companyName: "Ambev S.A.",
+                corporateNews: [
+                    "Não foram identificados Fatos Relevantes, Comunicados ao Mercado ou outras notícias corporativas de impacto para Ambev (ABEV3) divulgados após o fechamento do pregão de 22/05/2025 ou durante a madrugada/manhã de 23/05/2025 que pudessem impactar diretamente a cotação na abertura de hoje.[48] A última divulgação de resultados foi referente ao 1T25 em 08 de maio de 2025.[48]"
+                ],
+                results: {
+                    last: "1T25 (08/05/2025) [48]",
+                    next: "2T25 (Data não disponível no RI) [48]"
+                },
+                analystRecommendations: {
+                    xp: { recommendation: "Neutra", targetPrice: "R$ 12,10", analysisDate: "18/05 (se não houver mais recente)", details: "Última análise relevante da XP mantém recomendação 'Neutra' com preço-alvo de R$ 12,10." },
+                    genial: { recommendation: "Não encontrada", targetPrice: null, analysisDate: "23/05", details: "Não foram encontrados relatórios ou recomendações específicas da Genial Investimentos para ABEV3 divulgados após o fechamento de 22/05/2025 ou na manhã de 23/05/2025.[50]" }
+                },
+                adr: { ticker: "ABEV", exchange: "NYSE", lastClose: "US$ 2,550 (estável - ref. 19/05)", preMarket: "A ser verificado" },
+                summaryTableData: [
+                    { info: "Último Fato Relevante/Comunicado RI (Pós-Fech. 22/05 ou 23/05)", detail: "Não identificado para o período relevante", source: "[48]" },
+                    { info: "Último Resultado Divulgado", detail: "1T25 (08/05/2025)", source: "[48]" },
+                    { info: "Próximo Resultado (Data/Expectativa)", detail: "2T25 (Data não disponível no RI)", source: "[48]" },
+                    { info: "Recomendação XP (Recente/Nova)", detail: "Neutra, Preço-Alvo R$ 12,10 (Análise de 18/05, se não houver mais recente)", source: "" },
+                    { info: "Recomendação Genial (Recente/Nova)", detail: "Não encontrada para o período relevante", source: "[50]" },
+                    { info: "ADR (ABEV) Fech. After-Hours 22/05", detail: "A ser verificado", source: "" },
+                    { info: "ADR (ABEV) Pré-Mercado 23/05", detail: "A ser verificado", source: "" }
+                ],
+                expectedImpact: "Neutro. A ausência de notícias corporativas novas e de alterações significativas nas recomendações de analistas no período recente sugere uma abertura sem grandes direcionadores específicos para ABEV3. O desempenho da ADR no pré-mercado e o sentimento geral do mercado serão os principais influenciadores.",
+                riLink: "http://ri.ambev.com.br [49]"
+            },
+            "ALOS3": {
+                companyName: "Allos S.A.",
+                corporateNews: [
+                    "Não foram identificados Fatos Relevantes ou Comunicados ao Mercado para Allos (ALOS3) divulgados após o fechamento do pregão de 22/05/2025 ou durante a madrugada/manhã de 23/05/2025 no âmbito dos snippets consultados.[51]",
+                    "A empresa reportou um aumento de 5% nas vendas no 1T25 e um crescimento de 16,4% nas vendas totais em abril. A taxa de ocupação atingiu 96,8%.[52]"
+                ],
+                results: {
+                    last: "1T25 (Vendas +5%, Ocupação 96,8%) [52]",
+                    next: "2T25 (Data não disponível)"
+                },
+                analystRecommendations: {
+                    xp: { recommendation: "Não encontrada", targetPrice: null, analysisDate: "23/05", details: "Não foram encontradas novas recomendações da XP Investimentos para ALOS3 divulgadas após o fechamento de 22/05/2025 ou na manhã de 23/05/2025." },
+                    genial: { recommendation: "Análise do 1T25", targetPrice: null, analysisDate: "15/05", details: "A Genial publicou um relatório sobre os resultados do 1T25 da Allos em 15 de maio de 2025, intitulado 'Allos (ALOS3) | Resultado 1T25: Reduzindo o ritmo...'.[50]" }
+                },
+                adr: null,
+                summaryTableData: [
+                    { info: "Último Fato Relevante/Comunicado RI (Pós-Fech. 22/05 ou 23/05)", detail: "Não identificado para o período relevante", source: "[51]" },
+                    { info: "Último Resultado Divulgado", detail: "1T25 (Vendas +5%, Ocupação 96,8%)", source: "[52]" },
+                    { info: "Próximo Resultado (Data/Expectativa)", detail: "2T25 (Data não disponível)", source: "" },
+                    { info: "Recomendação XP (Recente/Nova)", detail: "Não encontrada para o período relevante", source: "" },
+                    { info: "Recomendação Genial (Recente/Nova)", detail: "Análise do 1T25 publicada em 15/05 ('Reduzindo o ritmo...')", source: "[50]" }
+                ],
+                expectedImpact: "Neutro. As notícias sobre o desempenho operacional do 1T25 e de abril já foram divulgadas e precificadas. A ausência de novas informações relevantes sugere uma abertura sem catalisadores específicos para a ação.",
+                riLink: "ri.allos.co [52]"
+            },
+            "ASAI3": {
+                companyName: "Assaí Atacadista S.A.",
+                corporateNews: [
+                    "Não foram identificados Fatos Relevantes ou Comunicados ao Mercado para Assaí (ASAI3) divulgados após o fechamento do pregão de 22/05/2025 ou durante a madrugada/manhã de 23/05/2025.[53]",
+                    "SimplyWallSt reportou em 21 de maio que o preço-alvo para ASAI3 foi aumentado em 8,5% para R$ 10,47.[55]"
+                ],
+                results: {
+                    last: "1T25 [53, 54]",
+                    next: "2T25 (Data não disponível)"
+                },
+                analystRecommendations: {
+                    xp: { recommendation: "Não encontrada", targetPrice: null, analysisDate: "23/05", details: "Não foram encontradas novas recomendações da XP Investimentos para ASAI3." },
+                    genial: { recommendation: "Compra (Swing Trade)", targetPrice: null, analysisDate: "23/05", details: "A Genial Investimentos indicou uma nova entrada de 'Compra' para ASAI3 em sua carteira de Swing Trade em 23 de maio de 2025.[50]" },
+                    others: [{ source: "SimplyWallSt", detail: "Aumento de preço-alvo para R$ 10,47 (21/05) [55]" }]
+                },
+                adr: null,
+                summaryTableData: [
+                    { info: "Último Fato Relevante/Comunicado RI (Pós-Fech. 22/05 ou 23/05)", detail: "Não identificado", source: "[53]" },
+                    { info: "Último Resultado Divulgado", detail: "1T25", source: "[53, 54]" },
+                    { info: "Recomendação Genial (Recente/Nova)", detail: "Nova entrada de 'Compra' em Swing Trade (23/05/2025)", source: "[50]" },
+                    { info: "Outras Notícias de Analistas", detail: "Aumento de preço-alvo para R$ 10,47 (SimplyWallSt, 21/05)", source: "[55]" }
+                ],
+                expectedImpact: "Positivo. A nova recomendação de compra pela Genial Investimentos para Swing Trade e o recente aumento de preço-alvo podem gerar um sentimento positivo para a ação na abertura.",
+                riLink: "ri.assai.com.br [54]"
+            },
+            "AZUL4": {
+                companyName: "Azul S.A.",
+                corporateNews: [
+                    "Não foram identificados Fatos Relevantes ou Comunicados ao Mercado para Azul (AZUL4) divulgados após o fechamento do pregão de 22/05/2025 ou durante a madrugada/manhã de 23/05/2025.[56]",
+                    "A Azul arquivou seu relatório Form 20-F referente ao ano fiscal de 2024 em 28 de abril de 2025.[57]"
+                ],
+                results: {
+                    last: "Relatório Anual 20-F (28/04/2025) [57]",
+                    next: "Não disponível"
+                },
+                analystRecommendations: {
+                    xp: { recommendation: "Não encontrada", targetPrice: null, analysisDate: "23/05", details: "Não foram encontradas novas recomendações da XP Investimentos para AZUL4." },
+                    genial: { recommendation: "Não encontrada", targetPrice: null, analysisDate: "23/05", details: "Não foram encontrados relatórios ou recomendações específicas da Genial Investimentos para AZUL4.[50]" }
+                },
+                adr: { ticker: "AZUL", exchange: "NYSE", lastClose: "A ser verificado", preMarket: "A ser verificado" },
+                summaryTableData: [
+                    { info: "Último Fato Relevante/Comunicado RI (Pós-Fech. 22/05 ou 23/05)", detail: "Não identificado", source: "[56]" },
+                    { info: "Último Resultado Divulgado", detail: "Relatório Anual 20-F (28/04/2025)", source: "[57]" },
+                    { info: "ADR (AZUL) Fech. After-Hours 22/05", detail: "A ser verificado", source: "" },
+                    { info: "ADR (AZUL) Pré-Mercado 23/05", detail: "A ser verificado", source: "" }
+                ],
+                expectedImpact: "Neutro. A ausência de notícias corporativas recentes ou novas recomendações de analistas sugere uma abertura sem direcionadores específicos. O desempenho da ADR e do setor aéreo em geral (notícia positiva sobre movimentação em abril [42]) podem influenciar.",
+                riLink: "ri.voeazul.com.br [57]"
+            },
+            "B3SA3": {
+                companyName: "B3 S.A. - Brasil, Bolsa, Balcão",
+                corporateNews: [
+                    "Não foram identificados Fatos Relevantes ou Comunicados ao Mercado para B3 (B3SA3) divulgados após o fechamento do pregão de 22/05/2025 ou durante a madrugada/manhã de 23/05/2025.[58]"
+                ],
+                results: {
+                    last: "1T25 (08/05/2025) [58, 59]",
+                    next: "2T25 (Data não disponível)"
+                },
+                analystRecommendations: {
+                    xp: { recommendation: "Não encontrada", targetPrice: null, analysisDate: "23/05", details: "Não foram encontradas novas recomendações da XP Investimentos para B3SA3." },
+                    genial: { recommendation: "Não encontrada", targetPrice: null, analysisDate: "23/05", details: "Não foram encontrados relatórios ou recomendações específicas da Genial Investimentos para B3SA3.[50]" }
+                },
+                adr: null,
+                summaryTableData: [
+                    { info: "Último Fato Relevante/Comunicado RI (Pós-Fech. 22/05 ou 23/05)", detail: "Não identificado", source: "[58]" },
+                    { info: "Último Resultado Divulgado", detail: "1T25 (08/05/2025)", source: "[58, 59]" }
+                ],
+                expectedImpact: "Neutro. A divulgação dos resultados do 1T25 já ocorreu. Sem novas notícias ou recomendações, a ação tende a seguir o sentimento geral do mercado.",
+                riLink: "ri.b3.com.br [59]"
+            },
+            "BBAS3": {
+                companyName: "Banco do Brasil S.A.",
+                corporateNews: [
+                    "Não foram identificados Fatos Relevantes ou Comunicados ao Mercado para o Banco do Brasil (BBAS3) divulgados estritamente após as 17:00 de 22/05/2025 ou durante a madrugada/manhã de 23/05/2025.[60]",
+                    "O Banco do Brasil aprovou a distribuição de JCP no valor de R$ 516,3 milhões (notícia relevante recente).[35]"
+                ],
+                results: {
+                    last: "1T25 (data não no snippet, XP já considera resultados 2024) [61]",
+                    next: "2T25 (13/08/2025) [60]"
+                },
+                analystRecommendations: {
+                    xp: { recommendation: "Compra", targetPrice: "R$ 41,00", analysisDate: "22/05/2025", details: "XP elevou preço-alvo (de R$ 37,00) após incorporar resultados de 2024, guidance 2025 e novas projeções macro. Espera crescimento de 4% no lucro líquido em 2025 A/A.[61]" },
+                    genial: { recommendation: "Manter", targetPrice: "R$ 31,40", analysisDate: "28/04/2025", details: "Última análise da Genial é prévia do 1T25.[62, 63]" }
+                },
+                adr: null,
+                summaryTableData: [
+                    { info: "Último Fato Relevante/Comunicado RI (Pós-Fech. 22/05 ou 23/05)", detail: "Não identificado. JCP aprovado.", source: "[35, 60]" },
+                    { info: "Próximo Resultado (Data/Expectativa)", detail: "2T25 (13/08/2025)", source: "[60]" },
+                    { info: "Recomendação XP (Recente/Nova)", detail: "Compra, Preço-Alvo R$ 41,00 (22/05/2025)", source: "[61]" },
+                    { info: "Recomendação Genial (Recente/Nova)", detail: "Manter, Preço-Alvo R$ 31,40 (28/04/2025)", source: "[63]" }
+                ],
+                expectedImpact: "Neutro a Positivo. A atualização positiva da XP Investimentos com elevação de preço-alvo é um fator favorável. A notícia sobre JCP também é positiva. O impacto do aumento do IOF no setor bancário pode trazer alguma cautela.",
+                riLink: "ri.bb.com.br [60]"
+            },
+             "BBSE3": {
+                companyName: "BB Seguridade Participações S.A.",
+                corporateNews: [
+                    "Não foram identificados Fatos Relevantes ou Comunicados ao Mercado para BB Seguridade (BBSE3) divulgados após o fechamento do pregão de 22/05/2025 ou durante a madrugada/manhã de 23/05/2025.[139]"
+                ],
+                results: {
+                    last: "1T25 (Conforme análise Genial de 05/05) [65]",
+                    next: "Não disponível"
+                },
+                analystRecommendations: {
+                    xp: { recommendation: "Não encontrada", targetPrice: null, analysisDate: "23/05", details: "Não foram encontradas novas recomendações da XP Investimentos para BBSE3.[140]" },
+                    genial: { recommendation: "Visão positiva para 2025", targetPrice: null, analysisDate: "05/05/2025", details: "Última análise da Genial para BBSE3 é sobre o resultado do 1T25. Genial projeta aceleração do lucro em 2025.[65]" }
+                },
+                adr: null,
+                summaryTableData: [
+                    { info: "Último Fato Relevante/Comunicado RI (Pós-Fech. 22/05 ou 23/05)", detail: "Não identificado", source: "[139]" },
+                    { info: "Último Resultado Divulgado", detail: "1T25 (Conforme análise Genial de 05/05)", source: "[65]" },
+                    { info: "Recomendação XP (Recente/Nova)", detail: "Não encontrada", source: "[140]" },
+                    { info: "Recomendação Genial (Recente/Nova)", detail: "Análise do 1T25 (05/05). Visão positiva para 2025.", source: "[65]" }
+                ],
+                expectedImpact: "Neutro. Sem notícias corporativas novas ou recomendações muito recentes para o período específico. A visão positiva da Genial para o ano pode oferecer algum suporte.",
+                riLink: "ri.bb.com.br/bbseguridade (verificar link específico)"
+            },
+            "BBDC4": {
+                companyName: "Banco Bradesco S.A.",
+                corporateNews: [
+                    "Não foram identificados Fatos Relevantes ou Comunicados ao Mercado para o Bradesco (BBDC4) divulgados após o fechamento do pregão de 22/05/2025 ou durante a madrugada/manhã de 23/05/2025.[66]"
+                ],
+                results: {
+                    last: "1T25 (Data exata não no snippet) [66]",
+                    next: "Não disponível"
+                },
+                analystRecommendations: {
+                    xp: { recommendation: "Neutra", targetPrice: "R$ 17,00", analysisDate: "23/05/2025", details: "XP destaca processo de reestruturação desafiador e rentabilidade (ROE) que dificilmente superará o custo de capital em 2025.[67]" },
+                    genial: { recommendation: "Comprar", targetPrice: "R$ 16,70", analysisDate: "08/05/2025", details: "Última análise da Genial sobre resultado do 1T25 sugere que o banco pode estar entregando resultados acima do esperado.[68]" }
+                },
+                adr: { ticker: "BBD", exchange: "NYSE", lastClose: "A ser verificado", preMarket: "A ser verificado" },
+                summaryTableData: [
+                    { info: "Último Fato Relevante/Comunicado RI (Pós-Fech. 22/05 ou 23/05)", detail: "Não identificado", source: "[66]" },
+                    { info: "Recomendação XP (Recente/Nova)", detail: "Neutra, Preço-Alvo R$ 17,00 (23/05/2025)", source: "[67]" },
+                    { info: "Recomendação Genial (Recente/Nova)", detail: "Comprar, Preço-Alvo R$ 16,70. Análise do 1T25 (08/05) positiva.", source: "[68]" },
+                    { info: "ADR (BBD) Fech. After-Hours 22/05", detail: "A ser verificado", source: "" }
+                ],
+                expectedImpact: "Neutro a Levemente Negativo. A análise atualizada da XP reitera visão cautelosa. Análise da Genial mais otimista, mas mais antiga. Impacto do IOF no setor bancário pode pesar.",
+                riLink: "bradescori.com.br [66]"
+            },
+            "BEEF3": {
+                companyName: "Minerva S.A.",
+                corporateNews: [
+                    "Não foram identificados Fatos Relevantes ou Comunicados ao Mercado para Minerva (BEEF3) divulgados após o fechamento do pregão de 22/05/2025 ou durante a madrugada/manhã de 23/05/2025.[69]"
+                ],
+                results: {
+                    last: "4T24 (Receita Bruta R$36,3bi, EBITDA R$3,1bi). 1T25 também divulgado (análise Genial). [69, 72]",
+                    next: "Não disponível"
+                },
+                analystRecommendations: {
+                    xp: { recommendation: "Neutro", targetPrice: "R$ 8,40", analysisDate: "17/05/2025", details: "XP rebaixou recomendação devido à maior alavancagem pressionando o valor do patrimônio líquido.[71]" },
+                    genial: { recommendation: "Análise do 1T25", targetPrice: null, analysisDate: "08/05/2025", details: "'Minerva (BEEF3) | Resultado do 1T25: Revisão para cima, mas sem euforia'.[72]" }
+                },
+                adr: null,
+                summaryTableData: [
+                    { info: "Último Fato Relevante/Comunicado RI (Pós-Fech. 22/05 ou 23/05)", detail: "Não identificado", source: "[69]" },
+                    { info: "Recomendação XP (Recente/Nova)", detail: "Neutra, Preço-Alvo R$ 8,40 (17/05/2025)", source: "[71]" },
+                    { info: "Recomendação Genial (Recente/Nova)", detail: "Análise do 1T25 (08/05) 'Revisão para cima, mas sem euforia'", source: "[72]" }
+                ],
+                expectedImpact: "Neutro a Negativo. O rebaixamento recente da XP para 'Neutro' e a menção à pressão da alavancagem podem influenciar negativamente.",
+                riLink: "ri.minervafoods.com [70]"
+            },
+            "BPAC11": {
+                companyName: "Banco BTG Pactual S.A.",
+                corporateNews: [
+                    "Não foram identificados Fatos Relevantes ou Comunicados ao Mercado para o BTG Pactual (BPAC11) divulgados após o fechamento do pregão de 22/05/2025 ou durante a madrugada/manhã de 23/05/2025.[73]",
+                    "SimplyWallSt reportou resultados do 1T25 em 13 de maio.[55]"
+                ],
+                results: {
+                    last: "1T25 [55, 73]",
+                    next: "Não disponível"
+                },
+                analystRecommendations: {
+                    xp: { recommendation: "Neutra", targetPrice: "R$ 36,00", analysisDate: "21/05/2025", details: "XP mantém recomendação 'Neutra' com preço-alvo reduzido (de R$ 41,00), devido ao cenário macro deteriorado e aumento do Custo de Equity (Ke).[77]" },
+                    genial: { recommendation: "Não encontrada", targetPrice: null, analysisDate: "23/05", details: "Nenhuma análise específica de BPAC11 para o período solicitado foi identificada.[64, 78]" }
+                },
+                adr: null,
+                summaryTableData: [
+                    { info: "Último Fato Relevante/Comunicado RI (Pós-Fech. 22/05 ou 23/05)", detail: "Não identificado", source: "[73]" },
+                    { info: "Recomendação XP (Recente/Nova)", detail: "Neutra, Preço-Alvo R$ 36,00 (21/05/2025, preço-alvo reduzido)", source: "[77]" }
+                ],
+                expectedImpact: "Negativo. A redução do preço-alvo pela XP e a justificativa de cenário macroeconômico adverso podem pressionar as cotações. O impacto do aumento do IOF no setor bancário também adiciona cautela.",
+                riLink: "ri.btgpactual.com [74]"
+            },
+            "BRFS3": {
+                companyName: "BRF S.A.",
+                corporateNews: [
+                    "Não foram identificados Fatos Relevantes ou Comunicados ao Mercado para BRF (BRFS3) divulgados após o fechamento do pregão de 22/05/2025 ou durante a madrugada/manhã de 23/05/2025.[79]",
+                    "A BRF arquivou seu relatório anual (Form 20-F) referente a 2024 em 30 de abril de 2025.[80]"
+                ],
+                results: {
+                    last: "1T25. Relatório Anual 20-F (30/04/2025). [79, 80]",
+                    next: "Não disponível"
+                },
+                analystRecommendations: {
+                    xp: { recommendation: "Compra, Top Pick", targetPrice: "R$ 29,20", analysisDate: "23/05/2025", details: "XP reitera BRF como 'Top Pick', destaca ponto de entrada atrativo, forte momentum de lucros no curto prazo e valuation relativo mais atrativo.[81]" },
+                    genial: { recommendation: "Análise do 1T25", targetPrice: null, analysisDate: "16/05/2025", details: "'BRF (BRFS3) | Resultado 1T25: Tri além, oferta aquém'.[82]" }
+                },
+                adr: { ticker: "BRFS", exchange: "NYSE", lastClose: "A ser verificado", preMarket: "A ser verificado" },
+                summaryTableData: [
+                    { info: "Último Fato Relevante/Comunicado RI (Pós-Fech. 22/05 ou 23/05)", detail: "Não identificado", source: "[79]" },
+                    { info: "Recomendação XP (Recente/Nova)", detail: "Compra, Top Pick, Preço-Alvo R$ 29,20 (23/05/2025)", source: "[81]" },
+                    { info: "Recomendação Genial (Recente/Nova)", detail: "Análise do 1T25 (16/05) 'Tri além, oferta aquém'", source: "[82]" },
+                    { info: "ADR (BRFS) Fech. After-Hours 22/05", detail: "A ser verificado", source: "" }
+                ],
+                expectedImpact: "Positivo. A reafirmação da BRF como 'Top Pick' pela XP com análise recente é um forte catalisador positivo.",
+                riLink: "ri.brf-global.com [80]"
+            },
+            "CMIG4": {
+                companyName: "CEMIG",
+                corporateNews: [
+                    "Comunicado ao Mercado (23/05/2025): Cemig comunicou a suspensão de liminar referente ao leilão de alienação de 4 Pequenas Centrais Hidrelétricas (PCHs).[83]"
+                ],
+                results: {
+                    last: "1T25 [83]",
+                    next: "2T25 (14/08/2025), 3T25 (13/11/2025) [83]"
+                },
+                analystRecommendations: {
+                    xp: { recommendation: "Neutra", targetPrice: "R$ 12,80", analysisDate: "23/05/2025", details: "XP cita foco em eficiência e distribuição, mas vê a federalização como um ruído político que aumenta a incerteza.[85]" },
+                    genial: { recommendation: "Manter", targetPrice: "R$ 12,50", analysisDate: "Geral da plataforma", details: "Recomendação geral da Genial para CMIG4 é 'Manter' com preço-alvo de R$ 12,50.[86]" }
+                },
+                adr: { ticker: "CIG", exchange: "NYSE", lastClose: "A ser verificado", preMarket: "A ser verificado" },
+                summaryTableData: [
+                    { info: "Último Fato Relevante/Comunicado RI (Pós-Fech. 22/05 ou 23/05)", detail: "Comunicado (23/05): Suspensão de liminar leilão PCHs.", source: "[83]" },
+                    { info: "Próximo Resultado (Data/Expectativa)", detail: "2T25 (14/08/2025)", source: "[83]" },
+                    { info: "Recomendação XP (Recente/Nova)", detail: "Neutra, Preço-Alvo R$ 12,80 (23/05/2025)", source: "[85]" },
+                    { info: "Recomendação Genial (Recente/Nova)", detail: "Manter, Preço-Alvo R$ 12,50", source: "[86]" }
+                ],
+                expectedImpact: "Neutro a Levemente Negativo. Comunicado sobre suspensão de liminar do leilão das PCHs pode trazer incerteza. Recomendação 'Neutra' da XP e preocupações com federalização podem pesar.",
+                riLink: "ri.cemig.com.br [84]"
+            },
+            "CMIN3": {
+                companyName: "CSN Mineração S.A.",
+                corporateNews: [
+                    "Não foram identificados Fatos Relevantes ou Comunicados ao Mercado para CSN Mineração (CMIN3) divulgados após o fechamento do pregão de 22/05/2025 ou durante a madrugada/manhã de 23/05/2025.[87]"
+                ],
+                results: {
+                    last: "4T24 e anual 2024. 1T25 também divulgado (análise Genial). [87, 90]",
+                    next: "Não disponível"
+                },
+                analystRecommendations: {
+                    xp: { recommendation: "Neutra", targetPrice: "R$ 6,00", analysisDate: "22/05/2025", details: "XP reitera recomendação 'Neutra' para final de 2024 (ano do alvo pode ser 2025). Cita restrição na geração de FCL e ausência de assimetria positiva nos preços do minério.[89]" },
+                    genial: { recommendation: "Análise do 1T25", targetPrice: null, analysisDate: "09/05/2025", details: "'CSN (CSNA3) & CMIN (CMIN3) | Resultado 1T25: Alívio inesperado'.[90]" }
+                },
+                adr: null,
+                summaryTableData: [
+                    { info: "Último Fato Relevante/Comunicado RI (Pós-Fech. 22/05 ou 23/05)", detail: "Não identificado", source: "[87]" },
+                    { info: "Recomendação XP (Recente/Nova)", detail: "Neutra, Preço-Alvo R$ 6,00 (22/05/2025)", source: "[89]" },
+                    { info: "Recomendação Genial (Recente/Nova)", detail: "Análise do 1T25 (09/05) 'Alívio inesperado'", source: "[90]" }
+                ],
+                expectedImpact: "Neutro a Negativo. Análise da XP reitera visão cautelosa. Estabilidade do minério de ferro pode oferecer contrapeso.",
+                riLink: "ri.csnmineracao.com.br [88]"
+            },
+            "CPLE6": {
+                companyName: "Copel",
+                corporateNews: [
+                    "Não foram identificados Fatos Relevantes ou Comunicados ao Mercado para Copel (CPLE6) divulgados após o fechamento do pregão de 22/05/2025 ou durante a madrugada/manhã de 23/05/2025.[91]"
+                ],
+                results: {
+                    last: "Informação não disponível diretamente no snippet do RI para o período.[91]",
+                    next: "Não disponível"
+                },
+                analystRecommendations: {
+                    xp: { recommendation: "Compra", targetPrice: "R$ 13,80", analysisDate: "22/05/2025", details: "XP destaca melhoria contínua da eficiência operacional, redirecionamento estratégico e desenvolvimentos importantes para geração, transmissão e comercialização.[93]" },
+                    genial: { recommendation: "Incluída na Carteira ESG 5+", targetPrice: null, analysisDate: "Abril/2025", details: "Copel (CPLE6) foi incluída na Carteira ESG 5+ da Genial em abril de 2025.[94]" }
+                },
+                adr: { ticker: "ELP", exchange: "NYSE", lastClose: "A ser verificado", preMarket: "A ser verificado" },
+                summaryTableData: [
+                    { info: "Último Fato Relevante/Comunicado RI (Pós-Fech. 22/05 ou 23/05)", detail: "Não identificado", source: "[91]" },
+                    { info: "Recomendação XP (Recente/Nova)", detail: "Compra, Preço-Alvo R$ 13,80 (22/05/2025)", source: "[93]" },
+                    { info: "Recomendação Genial (Recente/Nova)", detail: "Inclusão na Carteira ESG 5+ (Abril/2025)", source: "[94]" }
+                ],
+                expectedImpact: "Positivo. A análise recente e positiva da XP Investimentos pode impulsionar as ações.",
+                riLink: "ri.copel.com [92]"
+            },
+            "CRFB3": {
+                companyName: "Carrefour Brasil",
+                corporateNews: [
+                    "Não foram identificados Fatos Relevantes ou Comunicados ao Mercado para Carrefour Brasil (CRFB3) divulgados após o fechamento do pregão de 22/05/2025 ou durante a madrugada/manhã de 23/05/2025.[95]",
+                    "Notícias anteriores: assembleia aprovou proposta para sair da bolsa [96]; Carrefour França elevou oferta em abril/2025.[97]"
+                ],
+                results: {
+                    last: "1T25 (Lucro de R$ 225 milhões) [98]",
+                    next: "Não aplicável (processo de fechamento de capital)"
+                },
+                analystRecommendations: {
+                    xp: { recommendation: "Neutra", targetPrice: "R$ 8,50", analysisDate: "17/05/2025", details: "XP mantém 'Neutra', refletindo expectativa de que a ação negocie próxima ao valor da proposta de fechamento de capital.[99]" },
+                    genial: { recommendation: "Não encontrada", targetPrice: null, analysisDate: "23/05", details: "Não foram encontrados relatórios ou recomendações da Genial." }
+                },
+                adr: null,
+                summaryTableData: [
+                    { info: "Último Fato Relevante/Comunicado RI (Pós-Fech. 22/05 ou 23/05)", detail: "Não identificado. Processo de fechamento de capital em andamento.", source: "[95, 96]" },
+                    { info: "Recomendação XP (Recente/Nova)", detail: "Neutra, Preço-Alvo R$ 8,50 (17/05/2025, reflete preço OPA)", source: "[99]" }
+                ],
+                expectedImpact: "Neutro. Com processo de fechamento de capital, ação tende a negociar próxima ao valor da oferta (R$ 8,50 segundo XP), com baixa volatilidade, a menos de novidades sobre a OPA.",
+                riLink: "grupocarrefourbrasil.com.br/investidores/ (inacessível no momento da consulta)"
+            },
+             "CSAN3": {
+                companyName: "Cosan S.A.",
+                corporateNews: [
+                    "Não foram identificados Fatos Relevantes ou Comunicados ao Mercado para Cosan (CSAN3) divulgados após o fechamento do pregão de 22/05/2025 ou durante a madrugada/manhã de 23/05/2025.[100]"
+                ],
+                results: {
+                    last: "Não especificado no período recente nos snippets.[100]",
+                    next: "Não disponível"
+                },
+                analystRecommendations: {
+                    xp: { recommendation: "Compra", targetPrice: "R$ 18,50", analysisDate: "22/05/2025", details: "XP destaca plataforma diversificada e histórico de alocação de capital, mas aponta alavancagem como principal risco.[101]" },
+                    genial: { recommendation: "Swing Trade", targetPrice: "R$ 8,20 (alvo)", analysisDate: "Maio (sem data específica)", details: "Genial identificou oportunidade de Swing Trade (entrada R$ 7,29, alvo R$ 8,20).[102]" }
+                },
+                adr: null,
+                summaryTableData: [
+                    { info: "Último Fato Relevante/Comunicado RI (Pós-Fech. 22/05 ou 23/05)", detail: "Não identificado", source: "[100]" },
+                    { info: "Recomendação XP (Recente/Nova)", detail: "Compra, Preço-Alvo R$ 18,50 (22/05/2025)", source: "[101]" },
+                    { info: "Recomendação Genial (Recente/Nova)", detail: "Oportunidade de Swing Trade (Entrada R$ 7,29, Alvo R$ 8,20)", source: "[102]" }
+                ],
+                expectedImpact: "Positivo. A análise recente da XP com forte potencial de valorização e a indicação de swing trade da Genial podem impulsionar as ações.",
+                riLink: "cosan.com.br/en/investor-relations/ [100]"
+            },
+            "CSNA3": {
+                companyName: "Companhia Siderúrgica Nacional",
+                corporateNews: [
+                    "Não foram identificados Fatos Relevantes ou Comunicados ao Mercado para CSN (CSNA3) divulgados após o fechamento do pregão de 22/05/2025 ou durante a madrugada/manhã de 23/05/2025.[103]",
+                    "A CSN anunciou os resultados do 4T24 e do ano de 2024 em 12 de março de 2025.[104]"
+                ],
+                results: {
+                    last: "1T25. Resultados 4T24 e 2024 divulgados em 12/03/2025. [103, 104]",
+                    next: "Não disponível"
+                },
+                analystRecommendations: {
+                    xp: { recommendation: "Neutro", targetPrice: "R$ 20,00", analysisDate: "22/05/2025", details: "XP rebaixou recomendação para 'Neutro' (alvo para final de 2024). Cita espaço limitado para valorização e cautela com setor siderúrgico em 2024.[105]" },
+                    genial: { recommendation: "Análise do 1T25", targetPrice: null, analysisDate: "09/05/2025", details: "'CSN (CSNA3) & CMIN (CMIN3) | Resultado 1T25: Alívio inesperado'.[90]" }
+                },
+                adr: { ticker: "SID", exchange: "NYSE", lastClose: "A ser verificado", preMarket: "A ser verificado" },
+                summaryTableData: [
+                    { info: "Último Fato Relevante/Comunicado RI (Pós-Fech. 22/05 ou 23/05)", detail: "Não identificado", source: "[103]" },
+                    { info: "Recomendação XP (Recente/Nova)", detail: "Neutra, Preço-Alvo R$ 20,00 (22/05/2025, recomendação rebaixada)", source: "[105]" },
+                    { info: "Recomendação Genial (Recente/Nova)", detail: "Análise do 1T25 (09/05) 'Alívio inesperado'", source: "[90]" }
+                ],
+                expectedImpact: "Negativo. O rebaixamento da recomendação pela XP e a visão cautelosa sobre o setor podem pressionar as ações.",
+                riLink: "ri.csn.com.br [104]"
+            },
+            "CXSE3": {
+                companyName: "Caixa Seguridade Participações S.A.",
+                corporateNews: [
+                    "Não foram identificados Fatos Relevantes ou Comunicados ao Mercado para Caixa Seguridade (CXSE3) divulgados após o fechamento do pregão de 22/05/2025 ou durante a madrugada/manhã de 23/05/2025.[106]"
+                ],
+                results: {
+                    last: "1T25 [106]",
+                    next: "Não disponível"
+                },
+                analystRecommendations: {
+                    xp: { recommendation: "Não encontrada", targetPrice: null, analysisDate: "23/05", details: "Não foram encontradas análises ou recomendações recentes da XP para CXSE3.[107]" },
+                    genial: { recommendation: "Sem Cobertura", targetPrice: null, analysisDate: "N/A", details: "A Genial informa que CXSE3 está 'Sem Cobertura'.[108]" }
+                },
+                adr: null,
+                summaryTableData: [
+                    { info: "Último Fato Relevante/Comunicado RI (Pós-Fech. 22/05 ou 23/05)", detail: "Não identificado", source: "[106]" },
+                    { info: "Último Resultado Divulgado", detail: "1T25", source: "[106]" },
+                    { info: "Recomendação XP (Recente/Nova)", detail: "Não encontrada", source: "[107]" },
+                    { info: "Recomendação Genial (Recente/Nova)", detail: "Sem Cobertura", source: "[108]" }
+                ],
+                expectedImpact: "Neutro. Ausência de notícias novas e de cobertura por algumas casas de análise sugere uma abertura sem direcionadores específicos.",
+                riLink: "ri.caixaseguridade.com.br [106]"
+            },
+            "CYRE3": {
+                companyName: "Cyrela Brazil Realty S.A.",
+                corporateNews: [
+                    "Não foram identificados Fatos Relevantes ou Comunicados ao Mercado para Cyrela (CYRE3) divulgados após o fechamento do pregão de 22/05/2025 ou durante a madrugada/manhã de 23/05/2025.[109]"
+                ],
+                results: {
+                    last: "1T25 (15/05/2025, teleconferência 16/05) [109]",
+                    next: "Não disponível"
+                },
+                analystRecommendations: {
+                    xp: { recommendation: "Compra", targetPrice: "R$ 30,00", analysisDate: "22/05/2025", details: "XP destaca fortes lançamentos esperados em 2024, VSO robusta e sólido crescimento de LPA.[110]" },
+                    genial: { recommendation: "Não encontrada", targetPrice: null, analysisDate: "23/05", details: "Não foram encontrados relatórios ou recomendações da Genial para CYRE3.[86]" }
+                },
+                adr: null,
+                summaryTableData: [
+                    { info: "Último Fato Relevante/Comunicado RI (Pós-Fech. 22/05 ou 23/05)", detail: "Não identificado", source: "[109]" },
+                    { info: "Último Resultado Divulgado", detail: "1T25 (15/05/2025)", source: "[109]" },
+                    { info: "Recomendação XP (Recente/Nova)", detail: "Compra, Preço-Alvo R$ 30,00 (22/05/2025)", source: "[110]" }
+                ],
+                expectedImpact: "Positivo. A análise recente e positiva da XP Investimentos pode impulsionar as ações. O impacto do aumento do IOF no setor imobiliário (via custo de crédito) pode ser um contraponto.",
+                riLink: "ri.cyrela.com.br [109]"
+            },
+            "ELET3": {
+                companyName: "Eletrobras - Ordinárias",
+                corporateNews: [
+                    "Não foram identificados Fatos Relevantes ou Comunicados ao Mercado para Eletrobras (ELET3/ELET6) divulgados após o fechamento do pregão de 22/05/2025 ou durante a madrugada/manhã de 23/05/2025.[111]"
+                ],
+                results: {
+                    last: "1T25 [111]",
+                    next: "Não disponível (calendário de eventos sem próximos eventos) [111]"
+                },
+                analystRecommendations: {
+                    xp: { recommendation: "Compra", targetPrice: "R$ 50,00", analysisDate: "20/05/2025", details: "XP espera que Eletrobras explore oportunidades para reduzir portfólio de energia não contratada e vê espaço para redução de custos.[113]" },
+                    genial: { recommendation: "Comprar", targetPrice: "Potencial +25,06%", analysisDate: "15/05/2025", details: "Análise da teleconferência do 1T25 ('Tem muita coisa ainda pela frente!').[114]" }
+                },
+                adr: { ticker: "EBR", exchange: "NYSE", lastClose: "A ser verificado", preMarket: "A ser verificado" },
+                summaryTableData: [
+                    { info: "Último Fato Relevante/Comunicado RI (Pós-Fech. 22/05 ou 23/05)", detail: "Não identificado", source: "[111]" },
+                    { info: "Recomendação XP (Recente/Nova)", detail: "Compra, Preço-Alvo R$ 50,00 (ELET3) (20/05/2025)", source: "[113]" },
+                    { info: "Recomendação Genial (Recente/Nova)", detail: "Compra (Potencial +25,06%). Análise teleconf. 1T25 (15/05).", source: "[114]" }
+                ],
+                expectedImpact: "Positivo. Recomendações de compra da XP e Genial, e perspectivas de melhoria operacional, podem sustentar viés positivo. Setor de energia pode ser afetado por notícias sobre MP.",
+                riLink: "ri.eletrobras.com [111, 112]"
+            },
+            "ELET6": {
+                companyName: "Eletrobras - Preferenciais",
+                corporateNews: [
+                    "Mesmas informações de ELET3. Não foram identificados Fatos Relevantes ou Comunicados ao Mercado para Eletrobras (ELET3/ELET6) divulgados após o fechamento do pregão de 22/05/2025 ou durante a madrugada/manhã de 23/05/2025.[111]"
+                ],
+                results: {
+                    last: "1T25 [111]",
+                    next: "Não disponível (calendário de eventos sem próximos eventos) [111]"
+                },
+                analystRecommendations: {
+                    xp: { recommendation: "Compra", targetPrice: "R$ 54,00", analysisDate: "20/05/2025", details: "Mesmas informações de ELET3.[113]" },
+                    genial: { recommendation: "Análise ELET3 aplicável", targetPrice: null, analysisDate: "15/05/2025", details: "Genial não possui análise específica para ELET6 nos snippets recentes, mas a análise de ELET3 geralmente se estende.[115]" }
+                },
+                adr: { ticker: "EBR.B", exchange: "NYSE", lastClose: "A ser verificado", preMarket: "A ser verificado" },
+                 summaryTableData: [
+                    { info: "Último Fato Relevante/Comunicado RI (Pós-Fech. 22/05 ou 23/05)", detail: "Não identificado", source: "[111]" },
+                    { info: "Recomendação XP (Recente/Nova)", detail: "Compra, Preço-Alvo R$ 54,00 (ELET6) (20/05/2025)", source: "[113]" },
+                    { info: "Recomendação Genial (Recente/Nova)", detail: "Análise para ELET3 geralmente aplicável.", source: "[115]" }
+                ],
+                expectedImpact: "Positivo. Similar a ELET3, as recomendações positivas e perspectivas de melhoria podem sustentar um viés positivo.",
+                riLink: "ri.eletrobras.com [111, 112]"
+            },
+            "EMBR3": {
+                companyName: "Embraer S.A.",
+                corporateNews: [
+                    "Não foram identificados Fatos Relevantes ou Comunicados ao Mercado para Embraer (EMBR3) divulgados após o fechamento do pregão de 22/05/2025 ou durante a madrugada/manhã de 23/05/2025.[116]"
+                ],
+                results: {
+                    last: "Não especificado no período recente nos snippets.",
+                    next: "Não disponível"
+                },
+                analystRecommendations: {
+                    xp: { recommendation: "Neutra", targetPrice: "R$ 54,00 (US$ 37,00/ADS)", analysisDate: "22/05/2025", details: "XP reitera 'Neutra' para 2025. Vê ações precificadas de forma justa, espaço limitado para revisões de alta no consenso de curto prazo.[118]" },
+                    genial: { recommendation: "Swing Trade / Notícia", targetPrice: "R$ 74,67 (alvo ST)", analysisDate: "Maio / 05/05", details: "Genial: Swing Trade (entrada R$ 68,00, alvo R$ 74,67).[119] Notícia (05/05): negociações da Ethiopian Airlines para possível compra de jatos.[120]" }
+                },
+                adr: { ticker: "ERJ", exchange: "NYSE", lastClose: "A ser verificado", preMarket: "A ser verificado" },
+                summaryTableData: [
+                    { info: "Último Fato Relevante/Comunicado RI (Pós-Fech. 22/05 ou 23/05)", detail: "Não identificado", source: "[116]" },
+                    { info: "Recomendação XP (Recente/Nova)", detail: "Neutra, Preço-Alvo R$ 54,00 (22/05/2025)", source: "[118]" },
+                    { info: "Recomendação Genial (Recente/Nova)", detail: "Oportunidade Swing Trade. Notícia Ethiopian Airlines (05/05).", source: "[119, 120]" }
+                ],
+                expectedImpact: "Neutro a Levemente Negativo. Recomendação 'Neutra' da XP. Notícia sobre Ethiopian mais antiga. Indicação de swing trade da Genial pode atrair investidores.",
+                riLink: "ri.embraer.com.br [117]"
+            },
+            "EQTL3": {
+                companyName: "Equatorial Energia S.A.",
+                corporateNews: [
+                    "Não foram identificados Fatos Relevantes ou Comunicados ao Mercado para Equatorial (EQTL3) divulgados após o fechamento do pregão de 22/05/2025 ou durante a madrugada/manhã de 23/05/2025.[121]"
+                ],
+                results: {
+                    last: "1T25 [121]",
+                    next: "Não disponível (calendário de eventos sem próximos eventos) [121]"
+                },
+                analystRecommendations: {
+                    xp: { recommendation: "Compra", targetPrice: "R$ 46,00", analysisDate: "22/05/2025", details: "XP destaca histórico de aquisições e turnarounds bem-sucedidos, e expansão para saneamento com Sabesp.[123]" },
+                    genial: { recommendation: "Removida da Carteira", targetPrice: null, analysisDate: "Abril/2025", details: "EQTL3 foi removida da Carteira Ibovespa 10+ da Genial em abril de 2025.[124]" }
+                },
+                adr: null,
+                summaryTableData: [
+                    { info: "Último Fato Relevante/Comunicado RI (Pós-Fech. 22/05 ou 23/05)", detail: "Não identificado", source: "[121]" },
+                    { info: "Recomendação XP (Recente/Nova)", detail: "Compra, Preço-Alvo R$ 46,00 (22/05/2025)", source: "[123]" },
+                    { info: "Recomendação Genial (Recente/Nova)", detail: "Removida da Carteira Ibovespa 10+ (Abril/2025)", source: "[124]" }
+                ],
+                expectedImpact: "Positivo. Análise recente e positiva da XP. Setor de energia pode ser afetado por notícias sobre MP.",
+                riLink: "ri.equatorialenergia.com.br [122]"
+            },
+            "FLRY3": {
+                companyName: "Fleury S.A.",
+                corporateNews: [
+                    "Não foram identificados Fatos Relevantes ou Comunicados ao Mercado para Fleury (FLRY3) divulgados após o fechamento do pregão de 22/05/2025 ou durante a madrugada/manhã de 23/05/2025.[125]"
+                ],
+                results: {
+                    last: "Não especificado no período recente nos snippets.",
+                    next: "Não disponível"
+                },
+                analystRecommendations: {
+                    xp: { recommendation: "Neutra", targetPrice: "R$ 19,50", analysisDate: "14/05/2025", details: "XP vê empresa bem posicionada, mas ação com preço justo (verificar ano do alvo, snippet diz 2023).[127]" },
+                    genial: { recommendation: "Não encontrada", targetPrice: null, analysisDate: "23/05", details: "Não foram encontrados relatórios da Genial para FLRY3.[102]" }
+                },
+                adr: null,
+                summaryTableData: [
+                    { info: "Último Fato Relevante/Comunicado RI (Pós-Fech. 22/05 ou 23/05)", detail: "Não identificado", source: "[125]" },
+                    { info: "Recomendação XP (Recente/Nova)", detail: "Neutra, Preço-Alvo R$ 19,50 (14/05/2025, verificar ano do alvo)", source: "[127]" }
+                ],
+                expectedImpact: "Neutro. Sem notícias novas e com recomendação 'Neutra' da XP. Notícias sobre setor de saúde (ANS) podem ter influência.",
+                riLink: "ri.fleury.com.br [126]"
+            },
+            "GGBR4": {
+                companyName: "Gerdau S.A.",
+                corporateNews: [
+                    "Não foram identificados Fatos Relevantes ou Comunicados ao Mercado para Gerdau (GGBR4) divulgados após o fechamento do pregão de 22/05/2025 ou durante a madrugada/manhã de 23/05/2025.[128]"
+                ],
+                results: {
+                    last: "1T25 (Conforme análise Genial de 29/04) [131]",
+                    next: "Não disponível"
+                },
+                analystRecommendations: {
+                    xp: { recommendation: "Compra", targetPrice: "R$ 27,00", analysisDate: "23/05/2025", details: "XP vê valuation atrativo e perspectivas de preços do aço nos EUA sustentando rentabilidade (alvo para final de 2024 no snippet, pode ser 2025).[130]" },
+                    genial: { recommendation: "Análise do 1T25", targetPrice: null, analysisDate: "29/04/2025", details: "'O herói do tri é o vilão do ano'.[131]" }
+                },
+                adr: { ticker: "GGB", exchange: "NYSE", lastClose: "A ser verificado", preMarket: "A ser verificado" },
+                summaryTableData: [
+                    { info: "Último Fato Relevante/Comunicado RI (Pós-Fech. 22/05 ou 23/05)", detail: "Não identificado", source: "[128]" },
+                    { info: "Recomendação XP (Recente/Nova)", detail: "Compra, Preço-Alvo R$ 27,00 (23/05/2025)", source: "[130]" },
+                    { info: "Recomendação Genial (Recente/Nova)", detail: "Análise do 1T25 (29/04) 'O herói do tri é o vilão do ano'", source: "[131]" }
+                ],
+                expectedImpact: "Positivo. Análise recente da XP com 'Compra'. Estabilidade do minério e pressão de importações de aço a observar.",
+                riLink: "ri.gerdau.com/en/ [129]"
+            },
+            "GOAU4": {
+                companyName: "Metalúrgica Gerdau S.A.",
+                corporateNews: [
+                    "Não foram identificados Fatos Relevantes ou Comunicados ao Mercado para Metalúrgica Gerdau (GOAU4) divulgados após o fechamento do pregão de 22/05/2025 ou durante a madrugada/manhã de 23/05/2025.[128]"
+                ],
+                results: {
+                    last: "Não especificado no período recente nos snippets.",
+                    next: "Não disponível"
+                },
+                analystRecommendations: {
+                    xp: { recommendation: "Compra", targetPrice: "R$ 15,40", analysisDate: "20/05/2025", details: "XP otimista devido ao potencial de GGBR4, mas prefere GGBR4 (desconto de holding). (Alvo para final de 2022 no snippet, deve ser 2025).[133]" },
+                    genial: { recommendation: "Não encontrada", targetPrice: null, analysisDate: "23/05", details: "Nenhuma análise específica para GOAU4 nos snippets recentes.[102, 134]" }
+                },
+                adr: null,
+                summaryTableData: [
+                    { info: "Último Fato Relevante/Comunicado RI (Pós-Fech. 22/05 ou 23/05)", detail: "Não identificado", source: "[128]" },
+                    { info: "Recomendação XP (Recente/Nova)", detail: "Compra, Preço-Alvo R$ 15,40 (20/05/2025, verificar ano do alvo)", source: "[133]" }
+                ],
+                expectedImpact: "Positivo, seguindo GGBR4. Recomendação de compra da XP é positiva.",
+                riLink: "ri.gerdau.com/en/ [132]"
+            },
+            "HAPV3": {
+                companyName: "Hapvida Participações e Investimentos S.A.",
+                corporateNews: [
+                    "Não foram identificados Fatos Relevantes ou Comunicados ao Mercado para Hapvida (HAPV3) divulgados após o fechamento do pregão de 22/05/2025 ou durante a madrugada/manhã de 23/05/2025.[135]"
+                ],
+                results: {
+                    last: "1T25 [135]",
+                    next: "Não disponível"
+                },
+                analystRecommendations: {
+                    xp: { recommendation: "Compra", targetPrice: "R$ 6,40", analysisDate: "22/05/2025", details: "XP baseia visão construtiva no modelo de negócios eficiente, sinergias a serem colhidas e potencial de crescimento.[136]" },
+                    genial: { recommendation: "Análise do 1T25", targetPrice: null, analysisDate: "N/A", details: "Última análise da Genial para HAPV3 é sobre resultado do 1T25 ('Receita avança com aumento de ticket, mas margem ainda pressionada').[137]" }
+                },
+                adr: null,
+                summaryTableData: [
+                    { info: "Último Fato Relevante/Comunicado RI (Pós-Fech. 22/05 ou 23/05)", detail: "Não identificado", source: "[135]" },
+                    { info: "Recomendação XP (Recente/Nova)", detail: "Compra, Preço-Alvo R$ 6,40 (22/05/2025)", source: "[136]" },
+                    { info: "Recomendação Genial (Recente/Nova)", detail: "Análise do 1T25 'Receita avança..., margem pressionada'", source: "[137]" }
+                ],
+                expectedImpact: "Positivo. Análise recente da XP com recomendação de 'Compra'. Notícias sobre setor de saúde (ANS) podem ter influência.",
+                riLink: "ri.hapvida.com.br [135]"
+            }
+        };
+        
+        const indicatorsData = [
+            { indicator: "S&P 500 (Fech. 22/05)", value: "5.842,01", trend: "-0,04% (Queda Leve)", source: "[1, 3]" },
+            { indicator: "Nasdaq (Fech. 22/05)", value: "18.925,73", trend: "+0,28% (Alta)", source: "[1]" },
+            { indicator: "Nikkei 225 (Fech. 23/05)", value: "", trend: "+0,8% a +0,99% (Alta)", source: "[4, 5]" },
+            { indicator: "Shanghai Comp. (Fech. 23/05)", value: "", trend: "+0,01% (Estável/Alta Leve)", source: "[5]" },
+            { indicator: "FTSE 100 (Abertura 23/05)", value: "", trend: "+0,4% (Alta)", source: "[7]" },
+            { indicator: "DAX (Abertura 23/05)", value: "", trend: "+0,5% (Alta)", source: "[7]" },
+            { indicator: "S&P 500 Futuros (Manhã 23/05)", value: "", trend: "Estável", source: "[4]" },
+            { indicator: "Petróleo Brent (Manhã 23/05)", value: "US$ 64,52", trend: "+0,12% (Alta Leve)", source: "[11]" },
+            { indicator: "Minério de Ferro (62% Fe, China, 22/05)", value: "US$ 99,89", trend: "0,00% (Estável)", source: "[10]" },
+            { indicator: "Celulose (Tendência Global)", value: "", trend: "Alta Persistente", source: "[15, 16]" },
+            { indicator: "Índice DXY (Manhã 23/05)", value: "~99,36", trend: "-0,60% (Queda)", source: "[18, 19]" },
+            { indicator: "Dólar Futuro (WDOM25, Fech. 22/05)", value: "5.765 pts", trend: "+1,90% (Forte Alta)", source: "[22]" },
+            { indicator: "Ibovespa Futuro (WINM25, Abertura Investing.com 23/05)", value: "139.065 pts (Abertura)", trend: "Referência Fech. Anterior 138.432 / Tendência \"Forte Venda\"", source: "[25]" },
+            { indicator: "IPC-S (3ª quadrissemana de Maio/25)", value: "A ser divulgado às 8h", trend: "", source: "[31]" }
+        ];
+
+        let currentChart = null;
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const stockSelector = document.getElementById('stockSelector');
+            Object.keys(stockData).sort().forEach(ticker => {
+                const option = document.createElement('option');
+                option.value = ticker;
+                option.textContent = `${ticker} (${stockData[ticker].companyName})`;
+                stockSelector.appendChild(option);
+            });
+            stockSelector.addEventListener('change', displayStockDetail);
+
+            const indicatorsTableBody = document.getElementById('indicadoresTableBody');
+            indicatorsData.forEach(item => {
+                const row = indicatorsTableBody.insertRow();
+                row.insertCell().textContent = item.indicator;
+                row.insertCell().textContent = item.value;
+                row.insertCell().textContent = item.trend;
+            });
+            
+            showSection('panoramaGlobal');
+        });
+
+        function showSection(sectionId) {
+            document.querySelectorAll('.content-section').forEach(section => {
+                section.classList.add('hidden');
+            });
+            document.getElementById(sectionId).classList.remove('hidden');
+
+            document.querySelectorAll('.nav-button').forEach(button => {
+                button.classList.remove('active');
+                if (button.getAttribute('onclick') === `showSection('${sectionId}')`) {
+                    button.classList.add('active');
+                }
+            });
+        }
+        
+        function toggleCollapse(contentId) {
+            const content = document.getElementById(contentId);
+            const icon = document.getElementById(`${contentId}ToggleIcon`);
+            if (content.classList.contains('hidden')) {
+                content.classList.remove('hidden');
+                icon.textContent = '-';
+            } else {
+                content.classList.add('hidden');
+                icon.textContent = '+';
+            }
+        }
+
+        function displayStockDetail() {
+            const ticker = document.getElementById('stockSelector').value;
+            const detailDiv = document.getElementById('stockDetail');
+            
+            if (currentChart) {
+                currentChart.destroy();
+                currentChart = null;
+            }
+
+            if (!ticker) {
+                detailDiv.innerHTML = '<p class="text-stone-500">Selecione uma ação para ver os detalhes.</p>';
+                return;
+            }
+
+            const data = stockData[ticker];
+            let html = `<div class="border border-stone-200 rounded-lg p-1">`;
+            html += `<h3 class="text-2xl font-bold text-sky-700 mb-3">${ticker} - ${data.companyName}</h3>`;
+            html += `<p class="text-xs text-stone-500 mb-3">Link RI: ${data.riLink || 'Não disponível'}</p>`;
+
+            html += `<div class="mb-3 border-b border-stone-200">
+                        <nav class="-mb-px flex space-x-4" aria-label="Tabs" id="stockTabsNav-${ticker}">
+                        </nav>
+                     </div>`;
+            
+            html += `<div id="stockTabContent-${ticker}" class="mt-2"></div>`;
+            html += `</div>`;
+            detailDiv.innerHTML = html;
+            
+            createStockTabs(ticker, data);
+            showStockTab(ticker, 'resumo');
+        }
+
+        function createStockTabs(ticker, data) {
+            const tabsNav = document.getElementById(`stockTabsNav-${ticker}`);
+            const tabs = [
+                { id: 'resumo', label: 'Resumo' },
+                { id: 'noticias', label: 'Notícias Corp.' },
+                { id: 'resultados', label: 'Resultados' },
+                { id: 'analistas', label: 'Analistas' },
+            ];
+            if (data.adr) tabs.push({ id: 'adr', label: 'ADR' });
+            tabs.push({ id: 'impacto', label: 'Impacto Esperado' });
+
+            tabs.forEach(tab => {
+                const button = document.createElement('button');
+                button.className = 'tab-button';
+                button.textContent = tab.label;
+                button.onclick = () => showStockTab(ticker, tab.id);
+                button.id = `tabButton-${ticker}-${tab.id}`;
+                tabsNav.appendChild(button);
+            });
+        }
+        
+        function showStockTab(ticker, tabId) {
+            const data = stockData[ticker];
+            const tabContent = document.getElementById(`stockTabContent-${ticker}`);
+            document.querySelectorAll(`#stockTabsNav-${ticker} .tab-button`).forEach(btn => btn.classList.remove('active'));
+            document.getElementById(`tabButton-${ticker}-${tabId}`).classList.add('active');
+
+            let contentHtml = `<div class="space-y-3 text-sm text-stone-700 leading-relaxed p-2">`;
+
+            switch(tabId) {
+                case 'resumo':
+                    contentHtml += `<h4 class="text-lg font-semibold text-sky-600 mt-2 mb-2">Tabela Resumo ${ticker}</h4>`;
+                    contentHtml += '<div class="overflow-x-auto"><table class="min-w-full bg-white border border-stone-200 text-xs">';
+                    contentHtml += '<thead class="bg-sky-50"><tr><th class="px-3 py-1 border-b text-left font-semibold text-sky-700">Informação</th><th class="px-3 py-1 border-b text-left font-semibold text-sky-700">Detalhe</th><th class="px-3 py-1 border-b text-left font-semibold text-sky-700">Fonte</th></tr></thead><tbody>';
+                    data.summaryTableData.forEach(item => {
+                        contentHtml += `<tr><td class="border-b px-3 py-1">${item.info}</td><td class="border-b px-3 py-1">${item.detail}</td><td class="border-b px-3 py-1">${item.source}</td></tr>`;
+                    });
+                    contentHtml += '</tbody></table></div>';
+                    break;
+                case 'noticias':
+                    contentHtml += `<h4 class="text-lg font-semibold text-sky-600">Notícias Corporativas (RI/CVM)</h4>`;
+                    if (data.corporateNews && data.corporateNews.length > 0) {
+                        contentHtml += '<ul class="list-disc list-inside space-y-1">';
+                        data.corporateNews.forEach(news => contentHtml += `<li>${news}</li>`);
+                        contentHtml += '</ul>';
+                    } else {
+                        contentHtml += '<p>Nenhuma notícia corporativa específica encontrada para o período.</p>';
+                    }
+                    break;
+                case 'resultados':
+                    contentHtml += `<h4 class="text-lg font-semibold text-sky-600">Resultados Trimestrais/Anuais</h4>`;
+                    contentHtml += `<p><strong>Último Resultado Divulgado:</strong> ${data.results.last}</p>`;
+                    contentHtml += `<p><strong>Próximo Resultado (Data/Expectativa):</strong> ${data.results.next}</p>`;
+                    break;
+                case 'analistas':
+                    contentHtml += `<h4 class="text-lg font-semibold text-sky-600">Recomendações de Analistas</h4>`;
+                    const recs = data.analystRecommendations;
+                    let chartLabels = [];
+                    let chartData = [];
+                    let chartBackgroundColors = [];
+
+                    if (recs.xp && recs.xp.targetPrice) {
+                        contentHtml += `<p><strong>XP Investimentos (${recs.xp.analysisDate || 'N/A'}):</strong> ${recs.xp.recommendation}, Preço-Alvo ${recs.xp.targetPrice}. Detalhes: ${recs.xp.details || 'Não informado.'}</p>`;
+                        if (parseFloat(recs.xp.targetPrice.replace('R$ ', '').replace(',', '.'))) {
+                            chartLabels.push(`XP (${recs.xp.recommendation})`);
+                            chartData.push(parseFloat(recs.xp.targetPrice.replace('R$ ', '').replace(',', '.')));
+                            chartBackgroundColors.push('rgba(56, 189, 248, 0.7)'); // sky-400
+                        }
+                    } else if (recs.xp) {
+                         contentHtml += `<p><strong>XP Investimentos (${recs.xp.analysisDate || 'N/A'}):</strong> ${recs.xp.recommendation}. Detalhes: ${recs.xp.details || 'Não informado.'}</p>`;
+                    }
+
+                    if (recs.genial && recs.genial.targetPrice) {
+                        contentHtml += `<p><strong>Genial Investimentos (${recs.genial.analysisDate || 'N/A'}):</strong> ${recs.genial.recommendation}, Preço-Alvo ${recs.genial.targetPrice}. Detalhes: ${recs.genial.details || 'Não informado.'}</p>`;
+                         if (parseFloat(recs.genial.targetPrice.replace('R$ ', '').replace(',', '.'))) {
+                            chartLabels.push(`Genial (${recs.genial.recommendation})`);
+                            chartData.push(parseFloat(recs.genial.targetPrice.replace('R$ ', '').replace(',', '.')));
+                            chartBackgroundColors.push('rgba(20, 184, 166, 0.7)'); // teal-500
+                        }
+                    } else if (recs.genial) {
+                         contentHtml += `<p><strong>Genial Investimentos (${recs.genial.analysisDate || 'N/A'}):</strong> ${recs.genial.recommendation}. Detalhes: ${recs.genial.details || 'Não informado.'}</p>`;
+                    }
+                    
+                    if (recs.others && recs.others.length > 0) {
+                        contentHtml += `<p><strong>Outras Análises:</strong></p><ul class="list-disc list-inside">`;
+                        recs.others.forEach(other => contentHtml += `<li>${other.source}: ${other.detail}</li>`);
+                        contentHtml += `</ul>`;
+                    }
+
+                    if (chartData.length > 0) {
+                        contentHtml += `<div class="chart-container mt-4"><canvas id="analystChart-${ticker}"></canvas></div>`;
+                        setTimeout(() => renderAnalystChart(ticker, chartLabels, chartData, chartBackgroundColors), 0);
+                    } else {
+                        contentHtml += `<p class="mt-2 text-stone-500">Não há dados de preço-alvo suficientes para gerar um gráfico.</p>`;
+                    }
+                    break;
+                case 'adr':
+                    if (data.adr) {
+                        contentHtml += `<h4 class="text-lg font-semibold text-sky-600">ADRs (${data.adr.ticker} - ${data.adr.exchange})</h4>`;
+                        contentHtml += `<p><strong>Fechamento After-Hours (22/05):</strong> ${data.adr.lastClose}</p>`;
+                        contentHtml += `<p><strong>Pré-Mercado (23/05):</strong> ${data.adr.preMarket}</p>`;
+                    } else {
+                        contentHtml += '<p>Não aplicável (sem ADRs listadas nos EUA).</p>';
+                    }
+                    break;
+                case 'impacto':
+                    contentHtml += `<h4 class="text-lg font-semibold text-sky-600">Impacto Esperado na Abertura</h4>`;
+                    contentHtml += `<p>${data.expectedImpact}</p>`;
+                    break;
+            }
+            contentHtml += `</div>`;
+            tabContent.innerHTML = contentHtml;
+        }
+
+        function renderAnalystChart(ticker, labels, data, backgroundColors) {
+            const ctx = document.getElementById(`analystChart-${ticker}`).getContext('2d');
+            if (currentChart) {
+                currentChart.destroy();
+            }
+            currentChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Preço-Alvo (R$)',
+                        data: data,
+                        backgroundColor: backgroundColors,
+                        borderColor: backgroundColors.map(color => color.replace('0.7', '1')),
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                callback: function(value) {
+                                    return 'R$ ' + value.toFixed(2);
+                                }
+                            }
+                        },
+                        x: {
+                            ticks: {
+                                callback: function(value, index, values) {
+                                    const label = this.getLabelForValue(value);
+                                    if (label.length > 16) {
+                                        return label.substring(0, 15) + '...';
+                                    }
+                                    return label;
+                                }
+                            }
+                        }
+                    },
+                    plugins: {
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    let label = context.dataset.label || '';
+                                    if (label) {
+                                        label += ': ';
+                                    }
+                                    if (context.parsed.y !== null) {
+                                        label += new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(context.parsed.y);
+                                    }
+                                    return label;
+                                }
+                            }
+                        },
+                        legend: {
+                            display: false
+                        }
+                    }
+                }
+            });
+        }
+
+    </script>
+</body>
+</html>
