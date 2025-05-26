@@ -1,0 +1,1174 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Relatório Interativo Pré-Abertura B3</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Application Structure Plan:
+        - Header: Title of the report.
+        - Navigation: Sidebar with links to "Panorama Global", "Indicadores Chave", and "Análise de Ações".
+        - Content Area: Dynamically displays content based on navigation.
+            - "Panorama Global": Displays the introductory text.
+            - "Indicadores Chave": Displays the summary table of key overnight indicators.
+            - "Análise de Ações":
+                - A search/filter input for stock tickers.
+                - A list of clickable stock tickers.
+                - A detailed view area that populates with information for the selected stock (Notícias Corporativas, Resultados, Recomendações de Analistas, ADRs, Tabela Resumo).
+        - User Flow: User lands on the page, can navigate between sections. In "Análise de Ações", they can search/select a stock to view its specific details.
+        - Why this structure: It mirrors the logical flow of the report while making information easily accessible. The search/filter for stocks is crucial given the long list, enhancing usability.
+    -->
+    <!-- Visualization & Content Choices:
+        - Panorama Global:
+            - Report Info: General market sentiment, Memorial Day impact, B3 opening trends.
+            - Goal: Inform.
+            - Viz/Presentation: Formatted HTML text blocks.
+            - Interaction: None beyond reading.
+            - Justification: Best for narrative content.
+            - Library/Method: HTML/Tailwind.
+        - Tabela Resumo: Indicadores Chave Overnight:
+            - Report Info: Table of S&P 500 Fut, Nasdaq Fut, Dólar Fut, etc.
+            - Goal: Inform, Compare (values).
+            - Viz/Presentation: Interactive HTML table.
+            - Interaction: Reading.
+            - Justification: Direct representation of tabular data. A chart is not suitable for the mixed data types and single data points per indicator.
+            - Library/Method: HTML/Tailwind. Chart.js CDN included and chart container styled per requirement for potential future use.
+        - Análise Detalhada por Ação (e.g., ABEV3):
+            - Report Info: Notícias Corporativas, Resultados, Recomendações, ADRs, Tabela Resumo específica da ação.
+            - Goal: Inform, Detail.
+            - Viz/Presentation: Structured HTML text, bullet points, and small tables.
+            - Interaction: Selection of stock via filterable list, content dynamically displayed.
+            - Justification: Clear presentation of detailed, structured information per stock.
+            - Library/Method: HTML/Tailwind, vanilla JS for stock selection and dynamic content updates.
+    -->
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #FFF5F0; /* Warm Neutral - Light Peach */
+        }
+        .sidebar {
+            background-color: #4A5568; /* Neutral Grey */
+            color: #FFF5F0; /* Warm Neutral - Light Peach for text */
+        }
+        .sidebar a {
+            color: #E2E8F0; /* Lighter Grey for links */
+            transition: background-color 0.3s ease, color 0.3s ease;
+        }
+        .sidebar a:hover, .sidebar .active {
+            background-color: #FBD38D; /* Subtle Accent - Peach */
+            color: #2D3748; /* Darker Grey for text on hover */
+        }
+        .content-section {
+            background-color: #FFFFFF;
+            border-radius: 8px;
+            padding: 24px;
+            margin-bottom: 24px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+        .content-section h2 {
+            color: #2D3748; /* Darker Grey */
+            border-bottom: 2px solid #FBD38D; /* Subtle Accent - Peach */
+            padding-bottom: 8px;
+            margin-bottom: 16px;
+        }
+        .content-section h3 {
+            color: #4A5568; /* Neutral Grey */
+            margin-top: 16px;
+            margin-bottom: 8px;
+        }
+        .stock-list-item {
+            cursor: pointer;
+            padding: 8px 12px;
+            border-radius: 4px;
+            transition: background-color 0.2s ease;
+        }
+        .stock-list-item:hover, .stock-list-item.selected {
+            background-color: #FFF5F0; /* Warm Neutral - Light Peach */
+            color: #2D3748;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        th, td {
+            border: 1px solid #E2E8F0; /* Lighter Grey */
+            padding: 10px;
+            text-align: left;
+            font-size: 0.9rem;
+        }
+        th {
+            background-color: #EDF2F7; /* Very Light Grey */
+            color: #4A5568; /* Neutral Grey */
+        }
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 700px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 350px;
+            max-height: 400px;
+            background-color: #f9fafb;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+        @media (max-width: 768px) {
+            .chart-container {
+                height: 300px;
+                max-height: 350px;
+            }
+        }
+        .search-input {
+            border: 1px solid #CBD5E0; /* Light Grey Border */
+            padding: 8px 12px;
+            border-radius: 6px;
+            width: 100%;
+            box-shadow: inset 0 1px 2px rgba(0,0,0,0.07);
+        }
+        .search-input:focus {
+            outline: none;
+            border-color: #FBD38D; /* Subtle Accent - Peach */
+            box-shadow: 0 0 0 2px rgba(251, 211, 141, 0.5);
+        }
+        .bullet-list li {
+            margin-bottom: 0.5rem;
+            line-height: 1.6;
+        }
+        .bullet-list ul {
+            list-style-type: disc;
+            margin-left: 1.5rem;
+        }
+        .bullet-list ul ul {
+            list-style-type: circle;
+            margin-left: 1.5rem;
+        }
+    </style>
+</head>
+<body class="bg-gray-100">
+    <div class="flex flex-col md:flex-row min-h-screen">
+        <aside class="sidebar w-full md:w-64 space-y-2 p-4 md:sticky md:top-0 md:h-screen overflow-y-auto">
+            <h1 class="text-xl font-bold mb-6 text-center">Relatório B3</h1>
+            <nav>
+                <a href="#panorama" class="block py-2.5 px-4 rounded hover:bg-gray-700 nav-link active">Panorama Global</a>
+                <a href="#indicadores" class="block py-2.5 px-4 rounded hover:bg-gray-700 nav-link">Indicadores Chave</a>
+                <a href="#analise-acoes" class="block py-2.5 px-4 rounded hover:bg-gray-700 nav-link">Análise por Ação</a>
+            </nav>
+        </aside>
+
+        <main class="flex-1 p-6 md:p-10">
+            <header class="mb-8">
+                <h1 class="text-3xl font-bold text-gray-800">Relatório de Mercado Pré-Abertura B3: 26 de Maio de 2025</h1>
+            </header>
+
+            <section id="panorama" class="content-section">
+                <h2 class="text-2xl font-semibold">Panorama Global e Perspectivas para a B3</h2>
+                <div id="panorama-content" class="text-gray-700 space-y-4">
+                </div>
+            </section>
+
+            <section id="indicadores" class="content-section" style="display: none;">
+                <h2 class="text-2xl font-semibold">Tabela Resumo: Indicadores Chave Overnight</h2>
+                <p class="text-sm text-gray-600 mb-4">Valores de Fechamento de 23/05/2025 ou Últimos Disponíveis no Período.</p>
+                <div class="overflow-x-auto">
+                    <table id="indicadores-table" class="min-w-full">
+                        <thead>
+                            <tr>
+                                <th>Indicador</th>
+                                <th>Último Valor (Aprox.)</th>
+                                <th>Variação / Tendência</th>
+                                <th>Fonte(s)</th>
+                                <th>Observações Adicionais</th>
+                            </tr>
+                        </thead>
+                        <tbody id="indicadores-tbody" class="text-gray-700">
+                        </tbody>
+                    </table>
+                </div>
+                 <div class="mt-6">
+                    <h3 class="text-xl font-semibold text-gray-700 mb-3">Exemplo de Gráfico (Placeholder)</h3>
+                    <p class="text-sm text-gray-600 mb-4">Este é um container de gráfico estilizado conforme os requisitos. Um gráfico real seria renderizado aqui se dados apropriados estivessem disponíveis e fossem selecionados para visualização.</p>
+                    <div class="chart-container">
+                        <canvas id="placeholderChart"></canvas>
+                    </div>
+                </div>
+            </section>
+
+            <section id="analise-acoes" class="content-section" style="display: none;">
+                <h2 class="text-2xl font-semibold">Análise Detalhada por Ação Monitorada</h2>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div class="md:col-span-1">
+                        <h3 class="text-lg font-medium text-gray-700 mb-2">Selecionar Ação:</h3>
+                        <input type="text" id="stock-search" class="search-input mb-3" placeholder="Buscar ticker...">
+                        <div id="stock-list" class="bg-white border border-gray-200 rounded-md max-h-96 overflow-y-auto">
+                            </div>
+                    </div>
+                    <div id="stock-details-container" class="md:col-span-2">
+                        <div id="stock-details-placeholder" class="text-center text-gray-500 py-10">
+                            <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                                <path vector-effect="non-scaling-stroke" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 13h6m-3-3v6m-9 1V7a2 2 0 012-2h6l2 2h6a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2z" />
+                            </svg>
+                            <h3 class="mt-2 text-sm font-medium text-gray-900">Nenhuma ação selecionada</h3>
+                            <p class="mt-1 text-sm text-gray-500">Selecione uma ação da lista para ver os detalhes.</p>
+                        </div>
+                        <div id="stock-details" class="hidden space-y-6">
+                            <h3 id="stock-ticker-title" class="text-xl font-bold text-gray-800"></h3>
+                            <div id="stock-corporate-news" class="bullet-list"></div>
+                            <div id="stock-quarterly-results" class="bullet-list"></div>
+                            <div id="stock-analyst-recommendations" class="bullet-list"></div>
+                            <div id="stock-adrs" class="bullet-list"></div>
+                            <div id="stock-summary-table-container">
+                                <h4 class="text-lg font-semibold text-gray-700 mb-2">Tabela Resumo:</h4>
+                                <div class="overflow-x-auto">
+                                    <table id="stock-summary-table" class="min-w-full">
+                                        <thead>
+                                            <tr>
+                                                <th>Informação</th>
+                                                <th>Detalhe</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="stock-summary-tbody">
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <script>
+        const reportData = {
+            panoramaGlobal: `
+                <p>Os mercados globais apresentaram um panorama misto ao final da semana anterior, com o pregão de sexta-feira, 23 de maio de 2025, refletindo cautela nos mercados ocidentais, enquanto os mercados asiáticos demonstraram maior resiliência. Em Wall Street, os principais índices acionários, como o S&P 500 e o Nasdaq, registraram perdas, pressionados por preocupações persistentes quanto à trajetória das taxas de juros e o quadro fiscal nos Estados Unidos. Essa tendência de aversão ao risco também influenciou as bolsas europeias, que encerraram o mesmo dia em território negativo. Em contraste, os mercados asiáticos, que operaram antes da intensificação da cautela ocidental, tiveram um desempenho majoritariamente positivo na sexta-feira, impulsionados por dados econômicos regionais e pelo comportamento misto dos mercados americanos na noite anterior (horário local da Ásia). Essa divergência sugere que, embora fatores regionais tenham pesado, o sentimento global deteriorou-se ao longo das horas de negociação de sexta-feira, com o pessimismo nos EUA ditando o tom para o fechamento semanal.</p>
+                <p>O período do fim de semana (24 e 25 de maio) transcorreu sem a divulgação de notícias geopolíticas ou macroeconômicas de impacto disruptivo imediato. Contudo, a semana que se inicia em 26 de maio será marcada por uma agenda econômica densa, com destaque para a divulgação de dados cruciais nos Estados Unidos, incluindo a segunda estimativa do Produto Interno Bruto (PIB) do primeiro trimestre, o índice de preços de despesas de consumo pessoal (PCE) – a métrica de inflação preferida pelo Federal Reserve (Fed) – e a ata da última reunião do Comitê Federal de Mercado Aberto (FOMC). A ausência de eventos inesperados de grande magnitude durante o fim de semana tende a direcionar o foco dos investidores para esses indicadores já programados.</p>
+                <h3 class="text-xl font-semibold mt-4 mb-2">Impacto do Feriado de Memorial Day nos EUA (26/05/2025):</h3>
+                <p>É fundamental destacar que os mercados financeiros nos Estados Unidos estarão fechados nesta segunda-feira, 26 de maio de 2025, em observância ao feriado de Memorial Day. A ausência do maior mercado de referência global tem implicações diretas para a liquidez internacional, que tende a ser reduzida. Para o mercado brasileiro, isso significa que a B3 operará sem o tradicional balizador da performance dos futuros americanos (S&P 500 e Nasdaq) e sem a negociação dos American Depositary Receipts (ADRs) de empresas brasileiras em Nova Iorque durante o seu pregão. Consequentemente, a dinâmica da bolsa brasileira poderá ser mais influenciada por fatores domésticos, notícias corporativas locais e pelo comportamento dos mercados europeus e asiáticos que estarão em funcionamento.</p>
+                <h3 class="text-xl font-semibold mt-4 mb-2">Tendências para a Abertura da B3:</h3>
+                <p>Os futuros de índices dos EUA encerraram a sessão de sexta-feira com pouca alteração ou em leve queda antes do feriado prolongado. Devido ao Memorial Day, não haverá negociação de pré-mercado nos EUA nesta segunda-feira.</p>
+                <p>Os mercados asiáticos tiveram um fechamento predominantemente positivo na sexta-feira. A abertura e o comportamento das bolsas asiáticas na madrugada e manhã de segunda-feira (horário de Brasília) serão um dos poucos termômetros externos para a B3. As bolsas europeias, por sua vez, fecharam em baixa na sexta-feira, e sua abertura nesta segunda-feira também será um vetor importante de influência.</p>
+                <p>No mercado doméstico, o dólar comercial (spot) encerrou a sexta-feira cotado a R$ 5,6473, registrando uma queda de 0,24%. Em contrapartida, o contrato futuro de dólar (WDOM25) apresentou uma expressiva alta de 1,90%, fechando a 5.765,00 pontos. O Ibovespa fechou o pregão de sexta-feira com valorização de 0,40%, aos 137.824 pontos, e o índice futuro (INDFUT) acompanhou o movimento positivo, com alta de 0,38%.</p>
+                <p>A combinação do feriado nos EUA com a alta do dólar futuro no mercado doméstico na sexta-feira sugere uma possível busca por hedge ou uma expectativa de pressão cambial. Espera-se, portanto, uma abertura que pode ser mais suscetível a fatores técnicos e ao noticiário interno, com potencial para volatilidade aumentada.</p>
+            `,
+            indicadoresChave: [
+                { indicador: "S&P 500 Futuros", ultimoValor: "Fechou 23/05: ~5.802,82 (S&P 500 cash)", variacaoTendencia: "Queda de 0,67% (S&P 500 cash em 23/05). Futuros estáveis/leve queda na sexta.", fontes: "[1, 3]", observacoes: "Mercado dos EUA fechado em 26/05 (Memorial Day). Sem pré-mercado." },
+                { indicador: "Nasdaq 100 Futuros", ultimoValor: "Fechou 23/05: Nasdaq cash caiu 1,00%. Futuros com leve queda na sexta.", variacaoTendencia: "Queda (Nasdaq cash em 23/05). Futuros com leve queda na sexta.", fontes: "[1, 2]", observacoes: "Mercado dos EUA fechado em 26/05 (Memorial Day). Sem pré-mercado." },
+                { indicador: "Dólar Futuro (WDOM25)", ultimoValor: "5.765,00 (Fech. 23/05)", variacaoTendencia: "Alta de 1,90%", fontes: "[14]", observacoes: "Próximo à resistência de 5.779,50. Suportes em 5.718,50." },
+                { indicador: "Índice Futuro (WINM25)", ultimoValor: "138.954 (Fech. 23/05)", variacaoTendencia: "Alta de 0,38%", fontes: "[16]", observacoes: "" },
+                { indicador: "Petróleo WTI (Contrato Vigente)", ultimoValor: "US$ 61,91 (25/05)", variacaoTendencia: "Alta de 0,62% (25/05 vs 24/05)", fontes: "[150]", observacoes: "Cotação de 25/05 indica leve alta no fim de semana." },
+                { indicador: "Petróleo Brent (Contrato Vigente)", ultimoValor: "US$ 65,25/BBL (25/05)", variacaoTendencia: "Alta de 0,53% (25/05 vs 24/05)", fontes: "[151]", observacoes: "" },
+                { indicador: "Minério de Ferro 62% Fe (CFR China, Platts)", ultimoValor: "US$ 99,81/t (Futuros COMEX, Fech. 23/05, Contrato Maio '25 - TRK25)", variacaoTendencia: "Queda de 0,08%", fontes: "[17]", observacoes: "Contrato Maio '25 (TRK25) expira em 30/05/25." },
+                { indicador: "Celulose BHKP (Europa, Maio-25, Norexeco)", ultimoValor: "US$ 1.195,00/t (24/05)", variacaoTendencia: "Estável", fontes: "[152]", observacoes: "Cotação de 24/05. Preços BEK na Europa caíram ~$40/t em Abril." },
+                { indicador: "Shanghai Composite (China)", ultimoValor: "Fechou 23/05 com leve alta", variacaoTendencia: "Leve Alta / Estável", fontes: "[2, 5]", observacoes: "Abertura de 26/05 será observada." },
+                { indicador: "Nikkei 225 (Japão)", ultimoValor: "Fechou 23/05 em alta de 0,8%", variacaoTendencia: "Alta", fontes: "[2, 5]", observacoes: "Abertura de 26/05 será observada." },
+                { indicador: "Euro Stoxx 50 (Futuros)", ultimoValor: "Fech. 23/05: STOXX 600 caiu 1,03%", variacaoTendencia: "Queda", fontes: "[4]", observacoes: "Abertura de 26/05 será observada." },
+                { indicador: "Dólar (Spot BRL)", ultimoValor: "R$ 5,6473 (Fech. 23/05)", variacaoTendencia: "Queda de 0,24%", fontes: "[1, 13]", observacoes: "" }
+            ],
+            acoes: {
+                "ABEV3": {
+                    nome: "Ambev S.A.",
+                    noticiasCorporativas: `
+                        <h4 class="text-md font-semibold text-gray-600 mb-1">Notícias Corporativas (RI/CVM):</h4>
+                        <ul class="list-disc ml-5 text-sm">
+                            <li>Não foram identificados Fatos Relevantes ou Comunicados ao Mercado (CVM, RI Ambev) após fechamento de 23/05 ou fim de semana.</li>
+                            <li>Última divulgação relevante RI: Resultados 1T25 (08/05/2025).</li>
+                            <li>Consulta de informe de rendimentos para correntistas Bradesco disponível.</li>
+                        </ul>`,
+                    resultadosTrimestrais: `
+                        <h4 class="text-md font-semibold text-gray-600 mb-1">Resultados Trimestrais/Anuais:</h4>
+                        <ul class="list-disc ml-5 text-sm">
+                            <li>Resultados 1T25 divulgados em 08/05/2025. Sem novas previsões para o período.</li>
+                        </ul>`,
+                    recomendacoesAnalistas: `
+                        <h4 class="text-md font-semibold text-gray-600 mb-1">Recomendações de Analistas:</h4>
+                        <ul class="list-disc ml-5 text-sm">
+                            <li><strong>XP Investimentos (Análise de 22/05):</strong>
+                                <ul>
+                                    <li>Recomendação: "Neutra". Preço-alvo: R$ 12,10 (potencial desvalorização de 13,82% vs. R$ 14,04 da análise).</li>
+                                    <li>Considerações: Premissas conservadoras para custos/volumes; pressão sobre lucros em 2025/2026 (desvalorização do Real, alta do alumínio); riscos técnicos e possíveis revisões negativas de lucro; projeções XP para EBITDA/LPA abaixo do consenso para 2025/2026. Risco "negligenciado" na operação Cerveja Brasil com inflação ~6%.</li>
+                                    <li>Impacto: Análise recente cautelosa pode influenciar negativamente, especialmente com cenário macro desfavorável.</li>
+                                </ul>
+                            </li>
+                            <li><strong>Genial Investimentos:</strong> Não localizados relatórios específicos ou atualizações para ABEV3 no período (pós 23/05).</li>
+                            <li><strong>Itaú BBA:</strong> Não identificados relatórios específicos ou atualizações para ABEV3 no período.</li>
+                            <li><strong>BTG Pactual:</strong> Não encontrados relatórios específicos ou atualizações para ABEV3 no período.</li>
+                            <li>A análise da XP, por ser a mais recente e detalhada, pode ter influência preponderante.</li>
+                        </ul>`,
+                    adrs: `
+                        <h4 class="text-md font-semibold text-gray-600 mb-1">ADRs (ABEV - NYSE):</h4>
+                        <ul class="list-disc ml-5 text-sm">
+                            <li>Fechamento 23/05/2025: Informação não disponível.</li>
+                            <li>After-hours (23/05/2025): Informação não disponível.</li>
+                            <li>Pré-mercado (26/05/2025): Não aplicável (Feriado Memorial Day nos EUA).</li>
+                            <li>Indisponibilidade de dados recentes e feriado nos EUA eliminam indicador externo. Decisões mais baseadas em fatores locais.</li>
+                        </ul>`,
+                    tabelaResumo: [
+                        { informacao: "Último Fato Relevante/Comunicado RI (23/05 Pós-Mercado - 26/05 Pré-Mercado)", detalhe: "Não foram identificados." },
+                        { informacao: "Próxima Divulgação de Resultados", detalhe: "2T25, data a ser anunciada. Resultado do 1T25 divulgado em 08/05/2025." },
+                        { informacao: "Última Recomendação de Analista Relevante (XP Investimentos)", detalhe: "Data: 22/05/2025. Recomendação: Neutra. Preço-Alvo: R$ 12,10." },
+                        { informacao: "Desempenho ADR (ABEV - NYSE)", detalhe: "Fechamento 23/05 e After-Hours: Dados não disponíveis. Pré-mercado 26/05: Não aplicável (Feriado EUA)." }
+                    ]
+                },
+                "ALOS3": {
+                    nome: "Allos S.A.",
+                    noticiasCorporativas: `
+                        <h4 class="text-md font-semibold text-gray-600 mb-1">Notícias Corporativas (RI/CVM):</h4>
+                        <ul class="list-disc ml-5 text-sm">
+                            <li>Não foram identificados Fatos Relevantes ou Comunicados ao Mercado (CVM, RI Allos) após fechamento de 23/05 ou fim de semana. Última atualização RI: 25/03/2025.</li>
+                            <li>Contexto anterior: Aumento de 5% nas vendas no 1T25; crescimento de 16,4% nas vendas totais em abril; SSS +2,4% em abril.</li>
+                        </ul>`,
+                    resultadosTrimestrais: `
+                        <h4 class="text-md font-semibold text-gray-600 mb-1">Resultados Trimestrais/Anuais:</h4>
+                        <ul class="list-disc ml-5 text-sm">
+                            <li>Resultados 1T25 já divulgados. Sem novas previsões para o período. Calendário RI sem eventos futuros na última consulta.</li>
+                        </ul>`,
+                    recomendacoesAnalistas: `
+                        <h4 class="text-md font-semibold text-gray-600 mb-1">Recomendações de Analistas:</h4>
+                        <ul class="list-disc ml-5 text-sm">
+                            <li><strong>XP Investimentos (Análise de 21/05):</strong>
+                                <ul>
+                                    <li>Recomendação: "Compra". Preço-alvo (2024): R$ 34,00.</li>
+                                    <li>Considerações: Perspectivas robustas de financiamento para FIIs; diferencial atrativo cap rate Allos vs. M&A no setor (potencial desinvestimento de R$ 1,4 bi); projeção FFO +10% A/A em 2024 e +21% A/A em 2025; valuation atrativo (FFO Yield 8,8% para 2024).</li>
+                                    <li>Impacto: Análise positiva recente pode continuar a dar suporte.</li>
+                                </ul>
+                            </li>
+                            <li><strong>Genial Investimentos (Relatório de 15/05):</strong>
+                                <ul>
+                                    <li>Título: "Resultado 1T25: Reduzindo o ritmo...".</li>
+                                    <li>Impacto: Sugere perspectiva mais comedida que a XP, pode gerar opiniões divergentes.</li>
+                                </ul>
+                            </li>
+                            <li><strong>Itaú BBA / BTG Pactual:</strong> Não encontrados relatórios ou atualizações no período.</li>
+                            <li>Divergência entre XP (otimista) e Genial (mais cautelosa) pode fomentar debate.</li>
+                        </ul>`,
+                    adrs: `
+                        <h4 class="text-md font-semibold text-gray-600 mb-1">ADRs:</h4>
+                        <ul class="list-disc ml-5 text-sm">
+                            <li>Não aplicável.</li>
+                        </ul>`,
+                    tabelaResumo: [
+                        { informacao: "Último Fato Relevante/Comunicado RI (23/05 Pós-Mercado - 26/05 Pré-Mercado)", detalhe: "Não foram identificados." },
+                        { informacao: "Próxima Divulgação de Resultados", detalhe: "2T25, data a ser anunciada. Resultado do 1T25 já divulgado." },
+                        { informacao: "Última Recomendação de Analista Relevante (XP Investimentos)", detalhe: "Data: 21/05/2025. Recomendação: Compra. Preço-Alvo (2024): R$ 34,00." },
+                        { informacao: "Última Recomendação de Analista Relevante (Genial Investimentos)", detalhe: "Data: 15/05/2025. Título: \"Resultado 1T25: Reduzindo o ritmo...\"." },
+                        { informacao: "Desempenho ADR", detalhe: "Não aplicável." }
+                    ]
+                },
+                "ASAI3": {
+                    nome: "Assaí Atacadista - Sendas Distribuidora S.A.",
+                    noticiasCorporativas: `
+                        <h4 class="text-md font-semibold text-gray-600 mb-1">Notícias Corporativas (RI/CVM):</h4>
+                        <ul class="list-disc ml-5 text-sm">
+                            <li>Não localizados Fatos Relevantes ou Comunicados ao Mercado (CVM, RI Assaí) após fechamento de 23/05 ou fim de semana.</li>
+                            <li>Contexto: Resultados 1T25 já divulgados.</li>
+                        </ul>`,
+                    resultadosTrimestrais: `
+                        <h4 class="text-md font-semibold text-gray-600 mb-1">Resultados Trimestrais/Anuais:</h4>
+                        <ul class="list-disc ml-5 text-sm">
+                            <li>Resultados 1T25 já divulgados. Sem novas previsões para o período.</li>
+                        </ul>`,
+                    recomendacoesAnalistas: `
+                        <h4 class="text-md font-semibold text-gray-600 mb-1">Recomendações de Analistas:</h4>
+                        <ul class="list-disc ml-5 text-sm">
+                            <li><strong>XP Investimentos:</strong> Não encontrados relatórios ou atualizações no período. Análise anterior sobre transação Extra Hiper não se enquadra.</li>
+                            <li><strong>Genial Investimentos (20/05):</strong>
+                                <ul>
+                                    <li>Recomendação: "Compra Aberta". Sem atualizações posteriores.</li>
+                                </ul>
+                            </li>
+                            <li><strong>Itaú BBA:</strong> Matéria sobre aumento de projeção de lucro, mas data incerta e não do período de monitoramento.</li>
+                            <li><strong>BTG Pactual:</strong> Não identificados relatórios ou atualizações no período.</li>
+                            <li>Recomendação de "Compra Aberta" da Genial (20/05) é a mais recente. Sentimento prévio parecia positivo, com ressalvas da XP sobre governança na transação Extra Hiper.</li>
+                        </ul>`,
+                    adrs: `
+                        <h4 class="text-md font-semibold text-gray-600 mb-1">ADRs:</h4>
+                        <ul class="list-disc ml-5 text-sm">
+                            <li>Não aplicável.</li>
+                        </ul>`,
+                    tabelaResumo: [
+                        { informacao: "Último Fato Relevante/Comunicado RI (23/05 Pós-Mercado - 26/05 Pré-Mercado)", detalhe: "Não foram identificados." },
+                        { informacao: "Próxima Divulgação de Resultados", detalhe: "2T25, data a ser anunciada. Resultado do 1T25 já divulgado." },
+                        { informacao: "Última Recomendação de Analista Relevante (Genial Investimentos)", detalhe: "Data: 20/05/2025. Recomendação: Compra Aberta." },
+                        { informacao: "Desempenho ADR", detalhe: "Não aplicável." }
+                    ]
+                },
+                "AZUL4": {
+                    nome: "Azul S.A.",
+                    noticiasCorporativas: `
+                        <h4 class="text-md font-semibold text-gray-600 mb-1">Notícias Corporativas (RI/CVM):</h4>
+                        <ul class="list-disc ml-5 text-sm">
+                            <li>Não foram identificados Fatos Relevantes ou Comunicados ao Mercado (CVM, RI Azul) após fechamento de 23/05 ou fim de semana. Último FR: 14/04/2025.</li>
+                            <li>Relatório anual Form 20-F (2024) arquivado na SEC em 29/04/2025.</li>
+                        </ul>`,
+                    resultadosTrimestrais: `
+                        <h4 class="text-md font-semibold text-gray-600 mb-1">Resultados Trimestrais/Anuais:</h4>
+                        <ul class="list-disc ml-5 text-sm">
+                            <li>Resultados 1T25 já divulgados. Sem novas previsões para o período.</li>
+                        </ul>`,
+                    recomendacoesAnalistas: `
+                        <h4 class="text-md font-semibold text-gray-600 mb-1">Recomendações de Analistas:</h4>
+                        <ul class="list-disc ml-5 text-sm">
+                            <li><strong>XP Investimentos (Análise de 25/05 - Domingo):</strong>
+                                <ul>
+                                    <li>Recomendação: "Neutra" (reiterada). Preço-alvo (final de 2025): R$ 4,10 (revisado para baixo de R$ 6,60).</li>
+                                    <li>Considerações: Desenvolvimentos operacionais positivos (ASK, yields, frota E2); endividamento melhorou mas não resolvido; cenário incerto para acionistas (macro, diluição, M&A com GOL).</li>
+                                    <li>Impacto: <strong>Notícia NOVA e de potencial impacto RELEVANTE NEGATIVO.</strong> Redução de preço-alvo pode pressionar cotações.</li>
+                                </ul>
+                            </li>
+                            <li><strong>Genial Investimentos / Itaú BBA / BTG Pactual:</strong> Não localizados relatórios ou atualizações no período.</li>
+                            <li>Revisão da XP (corte de preço-alvo) durante o fim de semana é um catalisador negativo direto.</li>
+                        </ul>`,
+                    adrs: `
+                        <h4 class="text-md font-semibold text-gray-600 mb-1">ADRs (AZUL - NYSE):</h4>
+                        <ul class="list-disc ml-5 text-sm">
+                            <li>Fechamento 23/05: Último negócio registrado no after-hours a US$ 0,46.</li>
+                            <li>After-hours (23/05): Baixa liquidez, negócios ocorreram (ex: 49 ações a US$ 0,46).</li>
+                            <li>Pré-mercado (26/05): Não aplicável (Feriado Memorial Day nos EUA).</li>
+                            <li>Negociação ADR no after-hours antecedeu revisão da XP; valor preditivo limitado.</li>
+                        </ul>`,
+                    tabelaResumo: [
+                        { informacao: "Último Fato Relevante/Comunicado RI (23/05 Pós-Mercado - 26/05 Pré-Mercado)", detalhe: "Não foram identificados. Último FR em 14/04/2025." },
+                        { informacao: "Próxima Divulgação de Resultados", detalhe: "2T25, data a ser anunciada." },
+                        { informacao: "Última Recomendação de Analista Relevante (XP Investimentos)", detalhe: "Data: 25/05/2025. Recomendação: Neutra. Preço-Alvo: R$ 4,10 (revisado de R$ 6,60)." },
+                        { informacao: "Desempenho ADR (AZUL - NYSE)", detalhe: "After-Hours 23/05: Negociado (ex: US$ 0,46). Pré-mercado 26/05: Não aplicável (Feriado EUA)." }
+                    ]
+                },
+                "B3SA3": {
+                    nome: "B3 S.A. - Brasil, Bolsa, Balcão",
+                    noticiasCorporativas: `
+                        <h4 class="text-md font-semibold text-gray-600 mb-1">Notícias Corporativas (RI/CVM):</h4>
+                        <ul class="list-disc ml-5 text-sm">
+                            <li>Não foram identificados Fatos Relevantes ou Comunicados ao Mercado (CVM, RI B3) após fechamento de 23/05 ou fim de semana.</li>
+                            <li>Contexto: Dividendos anunciados anteriormente (ex-data 26/03/25, pagto 07/04/25).</li>
+                        </ul>`,
+                    resultadosTrimestrais: `
+                        <h4 class="text-md font-semibold text-gray-600 mb-1">Resultados Trimestrais/Anuais:</h4>
+                        <ul class="list-disc ml-5 text-sm">
+                            <li>Resultados 1T25 provavelmente já divulgados. Sem novas divulgações no período.</li>
+                        </ul>`,
+                    recomendacoesAnalistas: `
+                        <h4 class="text-md font-semibold text-gray-600 mb-1">Recomendações de Analistas:</h4>
+                        <ul class="list-disc ml-5 text-sm">
+                            <li><strong>XP Investimentos (Análise de 25/05 - Domingo):</strong>
+                                <ul>
+                                    <li>Recomendação: "Neutra". Preço-alvo (final de 2025): R$ 14,00 (reduzido de R$ 16,00).</li>
+                                    <li>Considerações: Cenário macro deteriorado impactando ADTV (projetado R$ 24 bi vs R$ 28,9 bi anterior para 2024); resiliência recente (derivativos, receitas de dados, custos); preocupações competitivas de longo prazo. Vista como "dividend play" (payout ~100%).</li>
+                                    <li>Impacto: <strong>Notícia NOVA e SIGNIFICATIVA.</strong> Redução de preço-alvo pode pressionar cotações devido à visão cautelosa sobre volumes.</li>
+                                </ul>
+                            </li>
+                            <li><strong>Genial Investimentos / Itaú BBA / BTG Pactual:</strong> Não encontrados relatórios ou atualizações no período.</li>
+                            <li>Revisão da XP (corte de preço-alvo) durante o fim de semana é um evento com potencial impacto negativo direto.</li>
+                        </ul>`,
+                    adrs: `
+                        <h4 class="text-md font-semibold text-gray-600 mb-1">ADRs (BOLSY - OTC):</h4>
+                        <ul class="list-disc ml-5 text-sm">
+                            <li>Informações não disponíveis para after-hours 23/05 e pré-mercado 26/05. Feriado nos EUA.</li>
+                        </ul>`,
+                    tabelaResumo: [
+                        { informacao: "Último Fato Relevante/Comunicado RI (23/05 Pós-Mercado - 26/05 Pré-Mercado)", detalhe: "Não foram identificados." },
+                        { informacao: "Próxima Divulgação de Resultados", detalhe: "2T25, data a ser confirmada." },
+                        { informacao: "Última Recomendação de Analista Relevante (XP Investimentos)", detalhe: "Data: 25/05/2025. Recomendação: Neutra. Preço-Alvo: R$ 14,00 (revisado de R$ 16,00)." },
+                        { informacao: "Desempenho ADR (BOLSY - OTC)", detalhe: "Dados não disponíveis. Feriado nos EUA em 26/05." }
+                    ]
+                },
+                "BBAS3": {
+                    nome: "Banco do Brasil S.A.",
+                    noticiasCorporativas: `
+                        <h4 class="text-md font-semibold text-gray-600 mb-1">Notícias Corporativas (RI/CVM):</h4>
+                        <ul class="list-disc ml-5 text-sm">
+                            <li>Não foram identificados Fatos Relevantes ou Comunicados ao Mercado (CVM, RI BB) após fechamento de 23/05 ou fim de semana.</li>
+                            <li>Próximos eventos RI: Formulário de Referência (30/05/25), Relatório Trimestral 2T25 (13/08/25).</li>
+                        </ul>`,
+                    resultadosTrimestrais: `
+                        <h4 class="text-md font-semibold text-gray-600 mb-1">Resultados Trimestrais/Anuais:</h4>
+                        <ul class="list-disc ml-5 text-sm">
+                            <li>Resultados 1T25 já divulgados. Próxima divulgação: Relatório Trimestral 2T25 em 13/08/2025.</li>
+                        </ul>`,
+                    recomendacoesAnalistas: `
+                        <h4 class="text-md font-semibold text-gray-600 mb-1">Recomendações de Analistas:</h4>
+                        <ul class="list-disc ml-5 text-sm">
+                            <li><strong>XP Investimentos (Análise de 25/05 - Domingo):</strong>
+                                <ul>
+                                    <li>Recomendação: "Compra" (mantida). Preço-alvo (final de 2025): R$ 41,00 (elevado de R$ 37,00).</li>
+                                    <li>Considerações: Lucro líquido deve crescer 4% vs 2024 apesar de macro desafiador e inadimplência no agro; resultados 2025 beneficiados por taxas de juros elevadas (funding de poupança/depósitos judiciais); ação negociada a 0,8x P/VPA com ROE acima do custo de capital.</li>
+                                    <li>Impacto: <strong>Notícia NOVA e com potencial impacto POSITIVO.</strong> Elevação de preço-alvo pode impulsionar ações.</li>
+                                </ul>
+                            </li>
+                            <li><strong>Genial Investimentos (Relatório de 16/05):</strong>
+                                <ul>
+                                    <li>Título: "Resultado 1T25: Nova Regra Agrava Efeitos do Agro e Frustra Expectativas".</li>
+                                    <li>Impacto: Visão negativa sobre 1T25. Atualização da XP pode mitigar pessimismo.</li>
+                                </ul>
+                            </li>
+                            <li><strong>Itaú BBA / BTG Pactual:</strong> Não encontrados relatórios ou atualizações no período. Matérias anteriores sobre BTG não do fim de semana.</li>
+                            <li>Elevação de preço-alvo da XP no domingo é contraponto à análise pessimista anterior da Genial.</li>
+                        </ul>`,
+                    adrs: `
+                        <h4 class="text-md font-semibold text-gray-600 mb-1">ADRs (BDORY - OTC):</h4>
+                        <ul class="list-disc ml-5 text-sm">
+                            <li>Informações não claramente disponíveis para after-hours 23/05 e pré-mercado 26/05. Feriado nos EUA.</li>
+                        </ul>`,
+                    tabelaResumo: [
+                        { informacao: "Último Fato Relevante/Comunicado RI (23/05 Pós-Mercado - 26/05 Pré-Mercado)", detalhe: "Não foram identificados." },
+                        { informacao: "Próxima Divulgação de Resultados", detalhe: "Relatório Trimestral 2T25 em 13/08/2025." },
+                        { informacao: "Última Recomendação de Analista Relevante (XP Investimentos)", detalhe: "Data: 25/05/2025. Recomendação: Compra. Preço-Alvo: R$ 41,00 (elevado de R$ 37,00)." },
+                        { informacao: "Última Recomendação de Analista Relevante (Genial Investimentos)", detalhe: "Data: 16/05/2025. Título: \"Resultado 1T25: Nova Regra Agrava Efeitos do Agro e Frustra Expectativas\"." },
+                        { informacao: "Desempenho ADR (BDORY - OTC)", detalhe: "Dados não claramente disponíveis. Feriado nos EUA em 26/05." }
+                    ]
+                },
+                 "BBSE3": {
+                    nome: "BB Seguridade Participações S.A.",
+                    noticiasCorporativas: `
+                        <h4 class="text-md font-semibold text-gray-600 mb-1">Notícias Corporativas (RI/CVM):</h4>
+                        <ul class="list-disc ml-5 text-sm">
+                            <li>Não foram identificados Fatos Relevantes ou Comunicados ao Mercado (CVM, RI BBSE) após fechamento de 23/05 ou fim de semana. Último press release RI: 05/05/2025.</li>
+                        </ul>`,
+                    resultadosTrimestrais: `
+                        <h4 class="text-md font-semibold text-gray-600 mb-1">Resultados Trimestrais/Anuais:</h4>
+                        <ul class="list-disc ml-5 text-sm">
+                            <li>Resultados 1T25 já divulgados. Sem novas previsões para o período.</li>
+                        </ul>`,
+                    recomendacoesAnalistas: `
+                        <h4 class="text-md font-semibold text-gray-600 mb-1">Recomendações de Analistas:</h4>
+                        <ul class="list-disc ml-5 text-sm">
+                            <li><strong>XP Investimentos:</strong> Acesso aos relatórios indisponível. Nenhuma nova análise encontrada.</li>
+                            <li><strong>Genial Investimentos (Análise Técnica, Maio):</strong>
+                                <ul>
+                                    <li>Observação: "Após deixar topo em 42,77 (máxima histórica em 30/04/2025) iniciou um repique de baixa nesse mês de maio. Suportes: 36,62, 35,73, 33,60 (GAP). Resistências: 39,41 (MME21), 41,57 (GAP), 42,77."</li>
+                                    <li>Impacto: Análise técnica aponta correção de baixa recente.</li>
+                                </ul>
+                            </li>
+                            <li><strong>Itaú BBA:</strong> Não encontrados relatórios ou atualizações no período.</li>
+                            <li><strong>BTG Pactual (Carteira Dividendos Maio/25):</strong> BBSE3 incluída. Informação contextual, não nova análise do fim de semana.</li>
+                            <li>Principal informação recente: análise técnica da Genial (repique de baixa). Inclusão na carteira BTG é contraponto positivo de longo prazo.</li>
+                        </ul>`,
+                    adrs: `
+                        <h4 class="text-md font-semibold text-gray-600 mb-1">ADRs:</h4>
+                        <ul class="list-disc ml-5 text-sm">
+                            <li>Não aplicável.</li>
+                        </ul>`,
+                    tabelaResumo: [
+                        { informacao: "Último Fato Relevante/Comunicado RI (23/05 Pós-Mercado - 26/05 Pré-Mercado)", detalhe: "Não foram identificados." },
+                        { informacao: "Próxima Divulgação de Resultados", detalhe: "2T25, data a ser anunciada. Resultado do 1T25 já divulgado." },
+                        { informacao: "Última Recomendação de Analista Relevante (Genial Investimentos - Técnica)", detalhe: "Data: Maio. Observação: Repique de baixa em maio, suportes e resistências definidos." },
+                        { informacao: "Última Recomendação de Analista Relevante (BTG Pactual - Carteira)", detalhe: "Data: Maio/25. Inclusão na Carteira Recomendada de Dividendos." },
+                        { informacao: "Desempenho ADR", detalhe: "Não aplicável." }
+                    ]
+                },
+                "BBDC4": {
+                    nome: "Banco Bradesco S.A.",
+                    noticiasCorporativas: `
+                        <h4 class="text-md font-semibold text-gray-600 mb-1">Notícias Corporativas (RI/CVM):</h4>
+                        <ul class="list-disc ml-5 text-sm">
+                            <li>Não foram identificados Fatos Relevantes ou Comunicados ao Mercado (CVM, RI Bradesco) após fechamento de 23/05 ou fim de semana.</li>
+                        </ul>`,
+                    resultadosTrimestrais: `
+                        <h4 class="text-md font-semibold text-gray-600 mb-1">Resultados Trimestrais/Anuais:</h4>
+                        <ul class="list-disc ml-5 text-sm">
+                            <li>Resultados 1T25 já divulgados. Sem novas previsões para o período.</li>
+                        </ul>`,
+                    recomendacoesAnalistas: `
+                        <h4 class="text-md font-semibold text-gray-600 mb-1">Recomendações de Analistas:</h4>
+                        <ul class="list-disc ml-5 text-sm">
+                            <li><strong>XP Investimentos (Análise Setorial de 25/05 - Domingo):</strong>
+                                <ul>
+                                    <li>Atualizou estimativas para o setor bancário, introduziu novos preços-alvo para 2025. Relatório: "Bancos: Cenário macroeconômico impõe desafios; Valuation importa".</li>
+                                    <li>Impacto: <strong>Notícia NOVA.</strong> Título sugere cautela para o setor. Impacto específico em BBDC4 a ser detalhado pelo relatório.</li>
+                                </ul>
+                            </li>
+                            <li><strong>Genial Investimentos / Itaú BBA (Empiricus) / BTG Pactual:</strong> Não encontrados relatórios ou atualizações no período.</li>
+                            <li>Atualização setorial da XP ("desafios") é a principal novidade, podendo influenciar negativamente o sentimento para Bradesco.</li>
+                        </ul>`,
+                    adrs: `
+                        <h4 class="text-md font-semibold text-gray-600 mb-1">ADRs (BBD - NYSE):</h4>
+                        <ul class="list-disc ml-5 text-sm">
+                            <li>Informações não disponíveis para fechamento 23/05, after-hours 23/05 e pré-mercado 26/05. Feriado nos EUA.</li>
+                        </ul>`,
+                    tabelaResumo: [
+                        { informacao: "Último Fato Relevante/Comunicado RI (23/05 Pós-Mercado - 26/05 Pré-Mercado)", detalhe: "Não foram identificados." },
+                        { informacao: "Próxima Divulgação de Resultados", detalhe: "2T25, data a ser confirmada. Resultado do 1T25 já divulgado." },
+                        { informacao: "Última Recomendação de Analista Relevante (XP Investimentos - Setorial)", detalhe: "Data: 25/05/2025. Estimativas atualizadas para o setor bancário; relatório \"Bancos: Cenário macroeconômico impõe desafios\"." },
+                        { informacao: "Desempenho ADR (BBD - NYSE)", detalhe: "Dados não disponíveis. Feriado nos EUA em 26/05." }
+                    ]
+                },
+                "BEEF3": {
+                    nome: "Minerva S.A.",
+                    noticiasCorporativas: `
+                        <h4 class="text-md font-semibold text-gray-600 mb-1">Notícias Corporativas (RI/CVM):</h4>
+                        <ul class="list-disc ml-5 text-sm">
+                            <li>Não foram identificados Fatos Relevantes ou Comunicados ao Mercado (CVM, RI Minerva) após fechamento de 23/05 ou fim de semana.</li>
+                        </ul>`,
+                    resultadosTrimestrais: `
+                        <h4 class="text-md font-semibold text-gray-600 mb-1">Resultados Trimestrais/Anuais:</h4>
+                        <ul class="list-disc ml-5 text-sm">
+                            <li>Resultados 1T25 (encerrado 31/03/25) reportados em 07/05/2025. Sem novas previsões para o período.</li>
+                        </ul>`,
+                    recomendacoesAnalistas: `
+                        <h4 class="text-md font-semibold text-gray-600 mb-1">Recomendações de Analistas:</h4>
+                        <ul class="list-disc ml-5 text-sm">
+                            <li><strong>XP Investimentos (Análise de 25/05 - Domingo):</strong>
+                                <ul>
+                                    <li>Recomendação: "Neutra". Preço-alvo: R$ 8,40.</li>
+                                    <li>Considerações: Venda de ativos Marfrig para Minerva, embora estratégica, aumenta alavancagem da Minerva e pressiona valor patrimonial. Minerva pode ter pago acima do justo.</li>
+                                    <li>Impacto: <strong>Notícia NOVA.</strong> Recomendação neutra e preocupações com alavancagem/preço podem gerar cautela.</li>
+                                </ul>
+                            </li>
+                            <li><strong>Genial Investimentos / Itaú BBA / BTG Pactual:</strong> Não encontrados relatórios ou atualizações no período.</li>
+                            <li>Análise da XP (aumento da dívida, valor pago) introduz contraponto à aquisição de ativos da Marfrig, podendo levar a reavaliação.</li>
+                        </ul>`,
+                    adrs: `
+                        <h4 class="text-md font-semibold text-gray-600 mb-1">ADRs:</h4>
+                        <ul class="list-disc ml-5 text-sm">
+                            <li>Não aplicável.</li>
+                        </ul>`,
+                    tabelaResumo: [
+                        { informacao: "Último Fato Relevante/Comunicado RI (23/05 Pós-Mercado - 26/05 Pré-Mercado)", detalhe: "Não foram identificados." },
+                        { informacao: "Próxima Divulgação de Resultados", detalhe: "2T25, data a ser anunciada. Resultado do 1T25 divulgado em 07/05/25." },
+                        { informacao: "Última Recomendação de Analista Relevante (XP Investimentos)", detalhe: "Data: 25/05/2025. Recomendação: Neutra. Preço-Alvo: R$ 8,40." },
+                        { informacao: "Desempenho ADR", detalhe: "Não aplicável." }
+                    ]
+                },
+                "BPAC11": {
+                    nome: "Banco BTG Pactual S.A.",
+                    noticiasCorporativas: `
+                        <h4 class="text-md font-semibold text-gray-600 mb-1">Notícias Corporativas (RI/CVM):</h4>
+                        <ul class="list-disc ml-5 text-sm">
+                            <li>Não foram identificados Fatos Relevantes ou Comunicados ao Mercado (CVM, RI BTG) após fechamento de 23/05 ou fim de semana. Última divulgação RI: Resultado 1T25.</li>
+                        </ul>`,
+                    resultadosTrimestrais: `
+                        <h4 class="text-md font-semibold text-gray-600 mb-1">Resultados Trimestrais/Anuais:</h4>
+                        <ul class="list-disc ml-5 text-sm">
+                            <li>Resultados 1T25 já divulgados. Próxima divulgação (2T25): 14/08/2025.</li>
+                        </ul>`,
+                    recomendacoesAnalistas: `
+                        <h4 class="text-md font-semibold text-gray-600 mb-1">Recomendações de Analistas:</h4>
+                        <ul class="list-disc ml-5 text-sm">
+                            <li><strong>XP Investimentos (Análise de 25/05 - Domingo):</strong>
+                                <ul>
+                                    <li>Recomendação: "Neutra" (mantida). Preço-alvo (final de 2025): R$ 36,00 (reduzido de R$ 41,00).</li>
+                                    <li>Considerações: Potencial de valorização limitado apesar de resultados sólidos e preparação para incertezas. Revisão incorpora resultados 2024 e projeções macro atualizadas. Relatório detalhado: "BTG Pactual (BPAC11): Cenário macro impondo desafios adicionais ao ROE".</li>
+                                    <li>Impacto: <strong>Notícia NOVA.</strong> Redução de preço-alvo pode gerar pressão negativa ou limitar otimismo.</li>
+                                </ul>
+                            </li>
+                            <li><strong>Genial Investimentos / Itaú BBA:</strong> Não encontrados relatórios ou atualizações no período.</li>
+                            <li><strong>BTG Pactual (Auto-cobertura):</strong> Comentário sobre 1T25 não do período de monitoramento.</li>
+                            <li>Corte no preço-alvo pela XP (desafios ao ROE) é sinal de alerta, pode moderar entusiasmo.</li>
+                        </ul>`,
+                    adrs: `
+                        <h4 class="text-md font-semibold text-gray-600 mb-1">ADRs:</h4>
+                        <ul class="list-disc ml-5 text-sm">
+                            <li>Não aplicável diretamente para a unit BPAC11.</li>
+                        </ul>`,
+                    tabelaResumo: [
+                        { informacao: "Último Fato Relevante/Comunicado RI (23/05 Pós-Mercado - 26/05 Pré-Mercado)", detalhe: "Não foram identificados." },
+                        { informacao: "Próxima Divulgação de Resultados", detalhe: "2T25 em 14/08/2025. Resultado do 1T25 já divulgado." },
+                        { informacao: "Última Recomendação de Analista Relevante (XP Investimentos)", detalhe: "Data: 25/05/2025. Recomendação: Neutra. Preço-Alvo: R$ 36,00 (reduzido de R$ 41,00)." },
+                        { informacao: "Desempenho ADR", detalhe: "Não aplicável diretamente para a unit BPAC11." }
+                    ]
+                },
+                "BRFS3": {
+                    nome: "BRF S.A.",
+                    noticiasCorporativas: `
+                        <h4 class="text-md font-semibold text-gray-600 mb-1">Notícias Corporativas (RI/CVM):</h4>
+                        <ul class="list-disc ml-5 text-sm">
+                            <li>Não foram identificados Fatos Relevantes ou Comunicados ao Mercado (CVM, RI BRF) após fechamento de 23/05 ou fim de semana.</li>
+                            <li>Relatório anual Form 20-F (2024) arquivado na SEC em 30/04/2025.</li>
+                        </ul>`,
+                    resultadosTrimestrais: `
+                        <h4 class="text-md font-semibold text-gray-600 mb-1">Resultados Trimestrais/Anuais:</h4>
+                        <ul class="list-disc ml-5 text-sm">
+                            <li>Resultados 1T25 já divulgados. Sem novas previsões para o período.</li>
+                        </ul>`,
+                    recomendacoesAnalistas: `
+                        <h4 class="text-md font-semibold text-gray-600 mb-1">Recomendações de Analistas:</h4>
+                        <ul class="list-disc ml-5 text-sm">
+                            <li><strong>XP Investimentos:</strong> Não encontrados relatórios ou atualizações no período.</li>
+                            <li><strong>Genial Investimentos (Relatórios de 14/05 e 16/05):</strong>
+                                <ul>
+                                    <li>16/05: "Resultado 1T25: Tri além, oferta aquém."</li>
+                                    <li>14/05: "Prévia 1T25: Trade down vs. Milho, o que pesa mais?"</li>
+                                    <li>Impacto: Análises anteriores ao fim de semana indicam visão mista ou com pontos de atenção sobre 1T25. "Tri além, oferta aquém" sugere dualidade.</li>
+                                </ul>
+                            </li>
+                            <li><strong>Itaú BBA / BTG Pactual:</strong> Não identificados relatórios ou atualizações no período.</li>
+                            <li>Na ausência de notícias novas, percepção de resultado com nuances para o 1T25 (Genial) deve persistir.</li>
+                        </ul>`,
+                    adrs: `
+                        <h4 class="text-md font-semibold text-gray-600 mb-1">ADRs (BRFS - NYSE):</h4>
+                        <ul class="list-disc ml-5 text-sm">
+                            <li>Informações não disponíveis para fechamento 23/05, after-hours 23/05 e pré-mercado 26/05. Feriado nos EUA.</li>
+                        </ul>`,
+                    tabelaResumo: [
+                        { informacao: "Último Fato Relevante/Comunicado RI (23/05 Pós-Mercado - 26/05 Pré-Mercado)", detalhe: "Não foram identificados." },
+                        { informacao: "Próxima Divulgação de Resultados", detalhe: "2T25, data a ser anunciada. Resultado do 1T25 já divulgado." },
+                        { informacao: "Última Recomendação de Analista Relevante (Genial Investimentos)", detalhe: "Data: 16/05/2025. Título: \"Resultado 1T25: Tri além, oferta aquém.\"." },
+                        { informacao: "Desempenho ADR (BRFS - NYSE)", detalhe: "Dados não disponíveis. Feriado nos EUA em 26/05." }
+                    ]
+                },
+                "CMIG4": {
+                    nome: "CEMIG - Companhia Energética de Minas Gerais",
+                    noticiasCorporativas: `
+                        <h4 class="text-md font-semibold text-gray-600 mb-1">Notícias Corporativas (RI/CVM):</h4>
+                        <ul class="list-disc ml-5 text-sm">
+                            <li>Não foram identificados Fatos Relevantes ou Comunicados ao Mercado (CVM, RI CEMIG) após fechamento de 23/05 ou fim de semana.</li>
+                            <li>Relatório anual Form 20-F (2024) arquivado na SEC em 30/04/2025.</li>
+                        </ul>`,
+                    resultadosTrimestrais: `
+                        <h4 class="text-md font-semibold text-gray-600 mb-1">Resultados Trimestrais/Anuais:</h4>
+                        <ul class="list-disc ml-5 text-sm">
+                            <li>Resultados 1T25 já divulgados. Sem novas previsões para o período.</li>
+                        </ul>`,
+                    recomendacoesAnalistas: `
+                        <h4 class="text-md font-semibold text-gray-600 mb-1">Recomendações de Analistas:</h4>
+                        <ul class="list-disc ml-5 text-sm">
+                            <li><strong>XP Investimentos / Genial Investimentos / Itaú BBA / BTG Pactual:</strong> Não encontrados relatórios ou atualizações no período.</li>
+                            <li>Ausência de notícias ou análises novas. Mercado pode ser influenciado por sentimento geral e notícias setoriais (ex: MP 1.300/2025).</li>
+                        </ul>`,
+                    adrs: `
+                        <h4 class="text-md font-semibold text-gray-600 mb-1">ADRs (CIG - NYSE):</h4>
+                        <ul class="list-disc ml-5 text-sm">
+                            <li>Informações não disponíveis para fechamento 23/05, after-hours 23/05 e pré-mercado 26/05. Feriado nos EUA.</li>
+                        </ul>`,
+                    tabelaResumo: [
+                        { informacao: "Último Fato Relevante/Comunicado RI (23/05 Pós-Mercado - 26/05 Pré-Mercado)", detalhe: "Não foram identificados." },
+                        { informacao: "Próxima Divulgação de Resultados", detalhe: "2T25, data a ser anunciada." },
+                        { informacao: "Última Recomendação de Analista Relevante", detalhe: "Nenhuma nova recomendação identificada no período." },
+                        { informacao: "Desempenho ADR (CIG - NYSE)", detalhe: "Dados não disponíveis. Feriado nos EUA em 26/05." }
+                    ]
+                },
+                "CMIN3": {
+                    nome: "CSN Mineração S.A.",
+                    noticiasCorporativas: `
+                        <h4 class="text-md font-semibold text-gray-600 mb-1">Notícias Corporativas (RI/CVM):</h4>
+                        <ul class="list-disc ml-5 text-sm">
+                            <li>Não foram identificados Fatos Relevantes ou Comunicados ao Mercado (CVM, RI CSN Mineração) após fechamento de 23/05 ou fim de semana.</li>
+                            <li>RI informa sobre informe de rendimentos via Bradesco.</li>
+                        </ul>`,
+                    resultadosTrimestrais: `
+                        <h4 class="text-md font-semibold text-gray-600 mb-1">Resultados Trimestrais/Anuais:</h4>
+                        <ul class="list-disc ml-5 text-sm">
+                            <li>Resultados 1T25 (encerrado 31/03/25) reportados em 08/05/2025: Prejuízo líquido de R$ 357,26 milhões. Sem novas previsões para o período.</li>
+                        </ul>`,
+                    recomendacoesAnalistas: `
+                        <h4 class="text-md font-semibold text-gray-600 mb-1">Recomendações de Analistas:</h4>
+                        <ul class="list-disc ml-5 text-sm">
+                            <li><strong>XP Investimentos:</strong> Análise da CSN (CSNA3) atualizada em 25/05 pode ter implicações indiretas. Sem análise específica para CMIN3 no período.</li>
+                            <li><strong>Genial Investimentos (Relatório de 09/05 sobre CSN e CMIN):</strong>
+                                <ul>
+                                    <li>Título: "Resultado 1T25: Alívio Inesperado!".</li>
+                                    <li>Impacto: Sugere que resultados, apesar do prejuízo, podem ter sido melhores que o esperado.</li>
+                                </ul>
+                            </li>
+                            <li><strong>Itaú BBA / BTG Pactual:</strong> Não encontrados relatórios ou atualizações no período.</li>
+                            <li>Referência recente: análise da Genial ("alívio inesperado"). Análise da XP sobre CSN pode ter reflexo indireto.</li>
+                        </ul>`,
+                    adrs: `
+                        <h4 class="text-md font-semibold text-gray-600 mb-1">ADRs:</h4>
+                        <ul class="list-disc ml-5 text-sm">
+                            <li>Não aplicável.</li>
+                        </ul>`,
+                    tabelaResumo: [
+                        { informacao: "Último Fato Relevante/Comunicado RI (23/05 Pós-Mercado - 26/05 Pré-Mercado)", detalhe: "Não foram identificados." },
+                        { informacao: "Próxima Divulgação de Resultados", detalhe: "2T25, data a ser anunciada. Resultado do 1T25 divulgado em 08/05/2025 (prejuízo de R$ 357,26 mi)." },
+                        { informacao: "Última Recomendação de Analista Relevante (Genial Investimentos)", detalhe: "Data: 09/05/2025. Título (CSN & CMIN): \"Resultado 1T25: Alívio Inesperado!\"." },
+                        { informacao: "Desempenho ADR", detalhe: "Não aplicável." }
+                    ]
+                },
+                "CPLE6": {
+                    nome: "COPEL - Companhia Paranaense de Energia",
+                    noticiasCorporativas: `
+                        <h4 class="text-md font-semibold text-gray-600 mb-1">Notícias Corporativas (RI/CVM):</h4>
+                        <ul class="list-disc ml-5 text-sm">
+                            <li>Não foram identificados Fatos Relevantes ou Comunicados ao Mercado (CVM, RI Copel) após fechamento de 23/05 ou fim de semana.</li>
+                            <li>Contexto anterior: Nova política de dividendos (payout mín. 75%); lucro 1T25 R$ 664,7 mi (+24,6%); dividendos R$ 0,39/ação; venda usina Baixo Iguaçu R$ 1,5 bi.</li>
+                        </ul>`,
+                    resultadosTrimestrais: `
+                        <h4 class="text-md font-semibold text-gray-600 mb-1">Resultados Trimestrais/Anuais:</h4>
+                        <ul class="list-disc ml-5 text-sm">
+                            <li>Resultados 1T25 já divulgados (lucro R$ 664,7 mi). Sem novas previsões para o período.</li>
+                        </ul>`,
+                    recomendacoesAnalistas: `
+                        <h4 class="text-md font-semibold text-gray-600 mb-1">Recomendações de Analistas:</h4>
+                        <ul class="list-disc ml-5 text-sm">
+                            <li><strong>XP Investimentos / Genial Investimentos / Itaú BBA / BTG Pactual:</strong> Não encontrados relatórios ou atualizações no período.</li>
+                            <li>Ausência de notícias ou análises novas. Mercado deve continuar a digerir informações positivas anteriores (lucro 1T25, dividendos). Sentimento do setor elétrico (MP 1.300/2025) pode influenciar.</li>
+                        </ul>`,
+                    adrs: `
+                        <h4 class="text-md font-semibold text-gray-600 mb-1">ADRs (ELP - NYSE):</h4>
+                        <ul class="list-disc ml-5 text-sm">
+                            <li>Informações não disponíveis para fechamento 23/05, after-hours 23/05 e pré-mercado 26/05. Feriado nos EUA.</li>
+                        </ul>`,
+                    tabelaResumo: [
+                        { informacao: "Último Fato Relevante/Comunicado RI (23/05 Pós-Mercado - 26/05 Pré-Mercado)", detalhe: "Não foram identificados." },
+                        { informacao: "Próxima Divulgação de Resultados", detalhe: "2T25, data a ser anunciada. Resultado do 1T25 já divulgado (lucro de R$ 664,7 mi)." },
+                        { informacao: "Última Recomendação de Analista Relevante", detalhe: "Nenhuma nova recomendação identificada no período." },
+                        { informacao: "Desempenho ADR (ELP - NYSE)", detalhe: "Dados não disponíveis. Feriado nos EUA em 26/05." }
+                    ]
+                },
+                "CRFB3": {
+                    nome: "Carrefour Brasil - Atacadão S.A.",
+                    noticiasCorporativas: `
+                        <h4 class="text-md font-semibold text-gray-600 mb-1">Notícias Corporativas (RI/CVM):</h4>
+                        <ul class="list-disc ml-5 text-sm">
+                            <li>Não foram identificados Fatos Relevantes ou Comunicados ao Mercado (CVM, RI Carrefour) após fechamento de 23/05 ou fim de semana.</li>
+                            <li>Contexto anterior: Lucro 1T25 R$ 225 mi; dividendos R$ 1,6 mi; incorporação Cotabest; planos de deslistagem da B3 (fechamento de capital no Brasil).</li>
+                        </ul>`,
+                    resultadosTrimestrais: `
+                        <h4 class="text-md font-semibold text-gray-600 mb-1">Resultados Trimestrais/Anuais:</h4>
+                        <ul class="list-disc ml-5 text-sm">
+                            <li>Resultados 1T25 já divulgados (lucro R$ 225 mi). Sem novas previsões para o período.</li>
+                        </ul>`,
+                    recomendacoesAnalistas: `
+                        <h4 class="text-md font-semibold text-gray-600 mb-1">Recomendações de Analistas:</h4>
+                        <ul class="list-disc ml-5 text-sm">
+                            <li><strong>XP Investimentos / Genial Investimentos / Itaú BBA / BTG Pactual:</strong> Não encontrados relatórios ou atualizações no período.</li>
+                            <li>Principal notícia recente: plano de fechamento de capital no Brasil, que deve continuar a influenciar percepção e liquidez.</li>
+                        </ul>`,
+                    adrs: `
+                        <h4 class="text-md font-semibold text-gray-600 mb-1">ADRs:</h4>
+                        <ul class="list-disc ml-5 text-sm">
+                            <li>Não aplicável (negociada na B3).</li>
+                        </ul>`,
+                    tabelaResumo: [
+                        { informacao: "Último Fato Relevante/Comunicado RI (23/05 Pós-Mercado - 26/05 Pré-Mercado)", detalhe: "Não foram identificados." },
+                        { informacao: "Próxima Divulgação de Resultados", detalhe: "2T25, data a ser anunciada. Resultado do 1T25 já divulgado (lucro de R$ 225 mi)." },
+                        { informacao: "Última Recomendação de Analista Relevante", detalhe: "Nenhuma nova recomendação identificada no período." },
+                        { informacao: "Desempenho ADR", detalhe: "Não aplicável." }
+                    ]
+                },
+                "CSAN3": {
+                    nome: "Cosan S.A.",
+                    noticiasCorporativas: `
+                        <h4 class="text-md font-semibold text-gray-600 mb-1">Notícias Corporativas (RI/CVM):</h4>
+                        <ul class="list-disc ml-5 text-sm">
+                            <li>Não foram identificados Fatos Relevantes ou Comunicados ao Mercado (CVM, RI Cosan) após fechamento de 23/05 ou fim de semana.</li>
+                        </ul>`,
+                    resultadosTrimestrais: `
+                        <h4 class="text-md font-semibold text-gray-600 mb-1">Resultados Trimestrais/Anuais:</h4>
+                        <ul class="list-disc ml-5 text-sm">
+                            <li>Resultados 1T25 atualizados em 15/05/2025. Sem novas previsões para o período.</li>
+                        </ul>`,
+                    recomendacoesAnalistas: `
+                        <h4 class="text-md font-semibold text-gray-600 mb-1">Recomendações de Analistas:</h4>
+                        <ul class="list-disc ml-5 text-sm">
+                            <li><strong>XP Investimentos (Análise 1T25):</strong>
+                                <ul>
+                                    <li>Relatório "Cosan (CSAN3): Resultados do 1T25 – Rumo a uma melhor estrutura de capital" sugere visão construtiva sobre desalavancagem. Sem atualização do fim de semana.</li>
+                                </ul>
+                            </li>
+                            <li><strong>Genial Investimentos:</strong> Página "Ações Cosan: Preço-Alvo e Recomendações 2025" indica cobertura. Sem atualizações no período.</li>
+                            <li><strong>Itaú BBA:</strong> Não encontrados relatórios ou atualizações no período.</li>
+                            <li><strong>BTG Pactual (Pós-1T25):</strong> Recomendou "compra". Sem atualização do fim de semana.</li>
+                            <li>Análises recentes (não do fim de semana) geralmente positivas (estrutura de capital, resultados 1T25). Recomendação de compra do BTG e análise da XP são direcionadores.</li>
+                        </ul>`,
+                    adrs: `
+                        <h4 class="text-md font-semibold text-gray-600 mb-1">ADRs (CSAN - NYSE):</h4>
+                        <ul class="list-disc ml-5 text-sm">
+                            <li>Informações não disponíveis para fechamento 23/05, after-hours 23/05 e pré-mercado 26/05. Feriado nos EUA.</li>
+                        </ul>`,
+                    tabelaResumo: [
+                        { informacao: "Último Fato Relevante/Comunicado RI (23/05 Pós-Mercado - 26/05 Pré-Mercado)", detalhe: "Não foram identificados." },
+                        { informacao: "Próxima Divulgação de Resultados", detalhe: "2T25, data a ser anunciada. Resultado do 1T25 atualizado em 15/05/2025." },
+                        { informacao: "Última Recomendação de Analista Relevante (BTG Pactual)", detalhe: "Data: Pós-1T25 (Maio). Recomendação: Compra." },
+                        { informacao: "Última Recomendação de Analista Relevante (XP Investimentos)", detalhe: "Data: Pós-1T25 (Maio). Título: \"Resultados do 1T25 – Rumo a uma melhor estrutura de capital\"." },
+                        { informacao: "Desempenho ADR (CSAN - NYSE)", detalhe: "Dados não disponíveis. Feriado nos EUA em 26/05." }
+                    ]
+                },
+                "CSNA3": {
+                    nome: "Companhia Siderúrgica Nacional",
+                    noticiasCorporativas: `
+                        <h4 class="text-md font-semibold text-gray-600 mb-1">Notícias Corporativas (RI/CVM):</h4>
+                        <ul class="list-disc ml-5 text-sm">
+                            <li>Não foram identificados Fatos Relevantes ou Comunicados ao Mercado (CVM, RI CSN) após fechamento de 23/05 ou fim de semana.</li>
+                        </ul>`,
+                    resultadosTrimestrais: `
+                        <h4 class="text-md font-semibold text-gray-600 mb-1">Resultados Trimestrais/Anuais:</h4>
+                        <ul class="list-disc ml-5 text-sm">
+                            <li>Resultados 1T25 divulgados em 08/05/2025: Prejuízo líquido R$ 732 milhões. EBITDA ajustado R$ 2,509 bi. Sem novas previsões para o período.</li>
+                        </ul>`,
+                    recomendacoesAnalistas: `
+                        <h4 class="text-md font-semibold text-gray-600 mb-1">Recomendações de Analistas:</h4>
+                        <ul class="list-disc ml-5 text-sm">
+                            <li><strong>XP Investimentos (Análise de 25/05 - Domingo):</strong>
+                                <ul>
+                                    <li>Recomendação: "Neutra" (rebaixada). Preço-alvo (final de 2024): R$ 20,00.</li>
+                                    <li>Considerações: Após forte desempenho (+54%), espaço limitado para valorização. Desconto holding CSN ~12% (vs 40% em Jul/23). Cautela com ano desafiador para siderurgia (margem EBITDA aço 11,5% para 2024). Valuation justo (EV/EBITDA 2024 de 5,0x).</li>
+                                    <li>Impacto: <strong>Notícia NOVA e com potencial impacto NEGATIVO.</strong> Rebaixamento e justificativas podem pesar.</li>
+                                </ul>
+                            </li>
+                            <li><strong>Genial Investimentos (Relatório de 09/05 sobre CSN e CMIN):</strong>
+                                <ul>
+                                    <li>Título: "Resultado 1T25: Alívio Inesperado!".</li>
+                                    <li>Impacto: Visão menos pessimista sobre 1T25. Nova avaliação da XP provavelmente terá maior peso.</li>
+                                </ul>
+                            </li>
+                            <li><strong>Itaú BBA:</strong> Matéria sobre repercussão do balanço 1T25, mas data e recomendação específica incertas.</li>
+                            <li><strong>BTG Pactual:</strong> Não encontrados relatórios ou atualizações no período.</li>
+                            <li>Rebaixamento da XP ("Neutra") durante o fim de semana é evento adverso significativo.</li>
+                        </ul>`,
+                    adrs: `
+                        <h4 class="text-md font-semibold text-gray-600 mb-1">ADRs (SID - NYSE):</h4>
+                        <ul class="list-disc ml-5 text-sm">
+                            <li>Fechamento 23/05: Dados não claros (mercado fechado, último preço US$ 1,27). After-hours/Pré-mercado 26/05: Não aplicável (Feriado EUA).</li>
+                        </ul>`,
+                    tabelaResumo: [
+                        { informacao: "Último Fato Relevante/Comunicado RI (23/05 Pós-Mercado - 26/05 Pré-Mercado)", detalhe: "Não foram identificados." },
+                        { informacao: "Próxima Divulgação de Resultados", detalhe: "2T25, data a ser anunciada. Resultado do 1T25 divulgado em 08/05/2025 (prejuízo de R$ 732 mi)." },
+                        { informacao: "Última Recomendação de Analista Relevante (XP Investimentos)", detalhe: "Data: 25/05/2025. Recomendação: Neutra (rebaixada). Preço-Alvo (2024): R$ 20,00." },
+                        { informacao: "Última Recomendação de Analista Relevante (Genial Investimentos)", detalhe: "Data: 09/05/2025. Título (CSN & CMIN): \"Resultado 1T25: Alívio Inesperado!\"." },
+                        { informacao: "Desempenho ADR (SID - NYSE)", detalhe: "Dados de fechamento de 23/05 não claros. Feriado nos EUA em 26/05." }
+                    ]
+                },
+                "CXSE3": {
+                    nome: "Caixa Seguridade Participações S.A.",
+                    noticiasCorporativas: `
+                        <h4 class="text-md font-semibold text-gray-600 mb-1">Notícias Corporativas (RI/CVM):</h4>
+                        <ul class="list-disc ml-5 text-sm">
+                            <li>Não foram identificados Fatos Relevantes ou Comunicados ao Mercado (CVM, RI Caixa Seguridade) após fechamento de 23/05 ou fim de semana. RI destaca release 1T25 e informe de rendimentos.</li>
+                        </ul>`,
+                    resultadosTrimestrais: `
+                        <h4 class="text-md font-semibold text-gray-600 mb-1">Resultados Trimestrais/Anuais:</h4>
+                        <ul class="list-disc ml-5 text-sm">
+                            <li>Resultados 1T25 já divulgados. Sem novas previsões para o período.</li>
+                        </ul>`,
+                    recomendacoesAnalistas: `
+                        <h4 class="text-md font-semibold text-gray-600 mb-1">Recomendações de Analistas:</h4>
+                        <ul class="list-disc ml-5 text-sm">
+                            <li><strong>XP Investimentos:</strong> Menção a dividendo R$ 0,32, mas não análise XP do período. Sem análise específica encontrada.</li>
+                            <li><strong>Genial Investimentos / Itaú BBA:</strong> Não encontrados relatórios ou atualizações no período.</li>
+                            <li><strong>BTG Pactual (Carteira Dividendos Maio/25):</strong> CXSE3 incluída; visão positiva comparada a BBSE3. Informação contextual de maio.</li>
+                            <li>Inclusão na carteira de dividendos BTG é informação saliente (não nova do fim de semana). Ausência de notícias negativas sugere abertura estável.</li>
+                        </ul>`,
+                    adrs: `
+                        <h4 class="text-md font-semibold text-gray-600 mb-1">ADRs:</h4>
+                        <ul class="list-disc ml-5 text-sm">
+                            <li>Não aplicável.</li>
+                        </ul>`,
+                    tabelaResumo: [
+                        { informacao: "Último Fato Relevante/Comunicado RI (23/05 Pós-Mercado - 26/05 Pré-Mercado)", detalhe: "Não foram identificados." },
+                        { informacao: "Próxima Divulgação de Resultados", detalhe: "2T25, data a ser anunciada. Resultado do 1T25 já divulgado." },
+                        { informacao: "Última Recomendação de Analista Relevante (BTG Pactual - Carteira)", detalhe: "Data: Maio/25. Inclusão na Carteira Recomendada de Dividendos." },
+                        { informacao: "Desempenho ADR", detalhe: "Não aplicável." }
+                    ]
+                },
+                "CYRE3": {
+                    nome: "Cyrela Brazil Realty S.A. Empreendimentos e Participações",
+                    noticiasCorporativas: `
+                        <h4 class="text-md font-semibold text-gray-600 mb-1">Notícias Corporativas (RI/CVM):</h4>
+                        <ul class="list-disc ml-5 text-sm">
+                            <li>Não foram identificados Fatos Relevantes ou Comunicados ao Mercado (CVM, RI Cyrela) após fechamento de 23/05 ou fim de semana.</li>
+                            <li>Prévia operacional 1T25 divulgada em 10/04/2025 (lançamentos R$ 3,383 bi, vendas R$ 2,112 bi).</li>
+                        </ul>`,
+                    resultadosTrimestrais: `
+                        <h4 class="text-md font-semibold text-gray-600 mb-1">Resultados Trimestrais/Anuais:</h4>
+                        <ul class="list-disc ml-5 text-sm">
+                             <li>Resultados completos do primeiro trimestre de 2025 já foram divulgados. Sem novas previsões para o período.</li>
+                        </ul>`,
+                    recomendacoesAnalistas: `
+                        <h4 class="text-md font-semibold text-gray-600 mb-1">Recomendações de Analistas:</h4>
+                        <ul class="list-disc ml-5 text-sm">
+                             <li><strong>XP Investimentos / Genial Investimentos / Itaú BBA / BTG Pactual:</strong> Não foram encontrados relatórios específicos ou atualizações de análise para CYRE3 no período de monitoramento.</li>
+                             <li>Na ausência de notícias corporativas ou novas análises durante o fim de semana, o mercado deve continuar a avaliar a prévia operacional do 1T25 e o cenário para o setor imobiliário.</li>
+                        </ul>`,
+                    adrs: `
+                        <h4 class="text-md font-semibold text-gray-600 mb-1">ADRs:</h4>
+                        <ul class="list-disc ml-5 text-sm">
+                            <li>Não aplicável.</li>
+                        </ul>`,
+                    tabelaResumo: [
+                        { informacao: "Último Fato Relevante/Comunicado RI (23/05 Pós-Mercado - 26/05 Pré-Mercado)", detalhe: "Não foram identificados." },
+                        { informacao: "Próxima Divulgação de Resultados", detalhe: "2T25, data a ser anunciada. Resultados do 1T25 já divulgados." },
+                        { informacao: "Última Recomendação de Analista Relevante", detalhe: "Nenhuma nova recomendação identificada no período." },
+                        { informacao: "Desempenho ADR", detalhe: "Não aplicável." }
+                    ]
+                }
+                // Add other stocks here following the same structure
+                // ELET3, ELET6, EMBR3, EQTL3, FLRY3, GGBR4, GOAU4, HAPV3, ITSA4, ITUB4, 
+                // JBSS3, KLBN11, LREN3, MGLU3, MULT3, NTCO3, PCAR3, PETR4, PRIO3,
+                // RADL3, RAIL3, RDOR3, RENT3, SANB11, SIMH3, SBSP3, SUZB3, TTEN3,
+                // TIMS3, TOTS3, UGPA3, VALE3, VAMO3, VBBR3, VIVA3, VIVT3, WEGE3, YDUQ3
+            }
+        };
+        
+        // Placeholder for stocks without specific data yet
+        const remainingStockTickers = [
+            "ELET3", "ELET6", "EMBR3", "EQTL3", "FLRY3", "GGBR4", "GOAU4", "HAPV3", "ITSA4", "ITUB4", 
+            "JBSS3", "KLBN11", "LREN3", "MGLU3", "MULT3", "NTCO3", "PCAR3", "PETR4", "PRIO3",
+            "RADL3", "RAIL3", "RDOR3", "RENT3", "SANB11", "SIMH3", "SBSP3", "SUZB3", "TTEN3",
+            "TIMS3", "TOTS3", "UGPA3", "VALE3", "VAMO3", "VBBR3", "VIVA3", "VIVT3", "WEGE3", "YDUQ3"
+        ];
+
+        remainingStockTickers.forEach(ticker => {
+            if (!reportData.acoes[ticker]) {
+                reportData.acoes[ticker] = {
+                    nome: `${ticker} - Nome da Empresa (Aguardando Dados)`,
+                    noticiasCorporativas: `<h4 class="text-md font-semibold text-gray-600 mb-1">Notícias Corporativas (RI/CVM):</h4><p class="text-sm text-gray-500">Sem notícias de impacto encontradas no período de monitoramento.</p>`,
+                    resultadosTrimestrais: `<h4 class="text-md font-semibold text-gray-600 mb-1">Resultados Trimestrais/Anuais:</h4><p class="text-sm text-gray-500">Verificar calendário de RI da empresa para próximas divulgações.</p>`,
+                    recomendacoesAnalistas: `<h4 class="text-md font-semibold text-gray-600 mb-1">Recomendações de Analistas:</h4><p class="text-sm text-gray-500">Nenhuma nova recomendação identificada no período de monitoramento.</p>`,
+                    adrs: `<h4 class="text-md font-semibold text-gray-600 mb-1">ADRs:</h4><p class="text-sm text-gray-500">Não aplicável ou sem dados no período.</p>`,
+                    tabelaResumo: [
+                        { informacao: "Último Fato Relevante/Comunicado RI", detalhe: "Não identificado no período." },
+                        { informacao: "Próxima Divulgação de Resultados", detalhe: "A verificar." },
+                        { informacao: "Última Recomendação de Analista", detalhe: "Não identificada no período." },
+                        { informacao: "Desempenho ADR", detalhe: "Não aplicável ou sem dados." }
+                    ]
+                };
+            }
+        });
+
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const navLinks = document.querySelectorAll('.nav-link');
+            const sections = document.querySelectorAll('.content-section');
+            const stockListEl = document.getElementById('stock-list');
+            const stockSearchEl = document.getElementById('stock-search');
+            const stockDetailsEl = document.getElementById('stock-details');
+            const stockDetailsPlaceholderEl = document.getElementById('stock-details-placeholder');
+
+            document.getElementById('panorama-content').innerHTML = reportData.panoramaGlobal;
+            
+            const indicadoresTbody = document.getElementById('indicadores-tbody');
+            reportData.indicadoresChave.forEach(item => {
+                const row = indicadoresTbody.insertRow();
+                row.insertCell().textContent = item.indicador;
+                row.insertCell().textContent = item.ultimoValor;
+                row.insertCell().textContent = item.variacaoTendencia;
+                row.insertCell().textContent = item.fontes;
+                row.insertCell().textContent = item.observacoes;
+            });
+
+            function populateStockList(filter = '') {
+                stockListEl.innerHTML = '';
+                Object.keys(reportData.acoes)
+                    .filter(ticker => ticker.toLowerCase().includes(filter.toLowerCase()) || reportData.acoes[ticker].nome.toLowerCase().includes(filter.toLowerCase()))
+                    .sort()
+                    .forEach(ticker => {
+                        const stock = reportData.acoes[ticker];
+                        const listItem = document.createElement('div');
+                        listItem.classList.add('stock-list-item', 'p-2', 'hover:bg-gray-200', 'cursor-pointer');
+                        listItem.textContent = `${ticker} - ${stock.nome}`;
+                        listItem.dataset.ticker = ticker;
+                        listItem.addEventListener('click', () => {
+                            displayStockDetails(ticker);
+                            document.querySelectorAll('.stock-list-item').forEach(item => item.classList.remove('selected', 'bg-amber-100', 'font-semibold'));
+                            listItem.classList.add('selected', 'bg-amber-100', 'font-semibold');
+                        });
+                        stockListEl.appendChild(listItem);
+                    });
+            }
+
+            stockSearchEl.addEventListener('input', (e) => {
+                populateStockList(e.target.value);
+            });
+            
+            function displayStockDetails(ticker) {
+                const stock = reportData.acoes[ticker];
+                if (!stock) return;
+
+                document.getElementById('stock-ticker-title').textContent = `${ticker} - ${stock.nome}`;
+                document.getElementById('stock-corporate-news').innerHTML = stock.noticiasCorporativas;
+                document.getElementById('stock-quarterly-results').innerHTML = stock.resultadosTrimestrais;
+                document.getElementById('stock-analyst-recommendations').innerHTML = stock.recomendacoesAnalistas;
+                document.getElementById('stock-adrs').innerHTML = stock.adrs;
+
+                const summaryTbody = document.getElementById('stock-summary-tbody');
+                summaryTbody.innerHTML = '';
+                stock.tabelaResumo.forEach(item => {
+                    const row = summaryTbody.insertRow();
+                    row.insertCell().textContent = item.informacao;
+                    row.insertCell().textContent = item.detalhe;
+                });
+                
+                stockDetailsPlaceholderEl.classList.add('hidden');
+                stockDetailsEl.classList.remove('hidden');
+            }
+
+            navLinks.forEach(link => {
+                link.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    const targetId = link.getAttribute('href').substring(1);
+                    
+                    sections.forEach(section => {
+                        if (section.id === targetId) {
+                            section.style.display = 'block';
+                        } else {
+                            section.style.display = 'none';
+                        }
+                    });
+                    
+                    navLinks.forEach(nav => nav.classList.remove('active'));
+                    link.classList.add('active');
+
+                    // Scroll to the section, especially on mobile after sidebar interaction
+                    const targetSection = document.getElementById(targetId);
+                    if (targetSection) {
+                         // Add a small delay for layout to adjust if sidebar was full-width
+                        setTimeout(() => {
+                            targetSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                        }, 100);
+                    }
+                });
+            });
+
+            // Initial setup
+            populateStockList();
+            document.getElementById('panorama').style.display = 'block'; // Show panorama by default
+            
+            // Placeholder Chart Example
+            const ctx = document.getElementById('placeholderChart').getContext('2d');
+            new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: ['Exemplo A', 'Exemplo B', 'Exemplo C', 'Exemplo D'],
+                    datasets: [{
+                        label: 'Valores de Exemplo',
+                        data: [12, 19, 3, 5],
+                        backgroundColor: [
+                            'rgba(251, 211, 141, 0.4)', // Peach accent with alpha
+                            'rgba(74, 85, 104, 0.4)',  // Neutral Grey with alpha
+                            'rgba(251, 211, 141, 0.6)',
+                            'rgba(74, 85, 104, 0.6)'
+                        ],
+                        borderColor: [
+                            'rgba(251, 211, 141, 1)',
+                            'rgba(74, 85, 104, 1)',
+                            'rgba(251, 211, 141, 1)',
+                            'rgba(74, 85, 104, 1)'
+                        ],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: { color: '#4A5568' }, // Neutral Grey for ticks
+                            grid: { color: '#E2E8F0' }  // Lighter Grey for grid
+                        },
+                        x: {
+                            ticks: { color: '#4A5568' },
+                            grid: { display: false }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            labels: { color: '#2D3748' } // Darker Grey for legend
+                        },
+                        title: {
+                            display: true,
+                            text: 'Gráfico de Exemplo (Dados Fictícios)',
+                            color: '#2D3748',
+                            font: { size: 16 }
+                        }
+                    }
+                }
+            });
+        });
+    </script>
+</body>
+</html>
