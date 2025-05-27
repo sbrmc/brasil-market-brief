@@ -18,5 +18,10 @@ export const reports = [
     html: 'relatorios/2025-05-26.html',     // caminho relativo
     audio: 'audios/2025-05-26.mp3'
   },
-  // acrescente novos objetos aqui, sempre o mais recente no topo
+  {
+    date: '2025-05-27',                     // dia de referência
+    title: 'Panorama Pré-Mercado – 26/05/2025',
+    html: 'relatorios/2025-05-27.html',     // caminho relativo
+    audio: 'audios/2025-05-27.mp3'
+  },  // acrescente novos objetos aqui, sempre o mais recente no topo
 ];

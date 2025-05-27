@@ -1,0 +1,561 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Resumo de Mercado Pré-Abertura com IA - 27/05/2025</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Visualization & Content Choices:
+        - Global Overview:
+            - Key Overnight Indicators: HTML Table. Goal: Inform. Method: HTML.
+            - Commodity Trends: Chart.js Line Chart. Goal: Show Change. Method: Chart.js.
+        - Stock Analysis (per stock):
+            - Corporate News (RI/CVM): Bulleted list. Goal: Inform. Method: HTML.
+            - Earnings Info: Text. Goal: Inform. Method: HTML.
+            - Analyst Recommendations: Structured text/list. Goal: Inform/Compare. Method: HTML.
+            - ADR Performance: Text. Goal: Inform. Method: HTML.
+            - Summary Table: HTML Table. Goal: Organize/Inform. Method: HTML.
+            - AI News Sentiment: Button triggers Gemini API call. Displays text. Goal: Analyze/Inform. Method: JS + Gemini API.
+            - AI Additional Insights: Button triggers Gemini API call. Displays text. Goal: Synthesize/Inform. Method: JS + Gemini API.
+        - General:
+            - Stock Selector: HTML Dropdown. Goal: Navigate/Filter. Method: HTML + JS.
+        - CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. All charts via Chart.js. AI integration via Gemini API. -->
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f5f5f5; /* bg-neutral-100 */
+            color: #262626; /* text-neutral-800 */
+        }
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 600px; /* max-w-2xl */
+            margin-left: auto;
+            margin-right: auto;
+            height: 300px; /* Base height, can be responsive e.g., h-64 sm:h-80 */
+            max-height: 400px; /* max-h-96 */
+        }
+        @media (min-width: 768px) {
+            .chart-container {
+                height: 350px;
+            }
+        }
+        .stock-detail-card {
+            background-color: #ffffff;
+            border-radius: 0.5rem; /* rounded-lg */
+            padding: 1.5rem; /* p-6 */
+            margin-bottom: 1.5rem; /* mb-6 */
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06); /* shadow-lg */
+        }
+        .stock-detail-card h3 {
+            font-size: 1.25rem; /* text-xl */
+            font-weight: 600; /* font-semibold */
+            color: #0284c7; /* text-sky-600 */
+            margin-bottom: 1rem; /* mb-4 */
+        }
+        .stock-detail-card h4 {
+            font-size: 1.125rem; /* text-lg */
+            font-weight: 600; /* font-semibold */
+            color: #404040; /* text-neutral-700 */
+            margin-top: 1rem; /* mt-4 */
+            margin-bottom: 0.5rem; /* mb-2 */
+        }
+        .stock-detail-card ul {
+            list-style-type: disc;
+            padding-left: 1.5rem; /* pl-6 */
+            margin-bottom: 1rem; /* mb-4 */
+        }
+        .stock-detail-card li {
+            margin-bottom: 0.25rem; /* mb-1 */
+        }
+        .badge {
+            display: inline-block;
+            padding: 0.25em 0.6em;
+            font-size: 75%;
+            font-weight: 700;
+            line-height: 1;
+            text-align: center;
+            white-space: nowrap;
+            vertical-align: baseline;
+            border-radius: 0.375rem;
+        }
+        .badge-green { background-color: #d1fae5; color: #065f46; }
+        .badge-yellow { background-color: #fef3c7; color: #92400e; }
+        .badge-red { background-color: #fee2e2; color: #991b1b; }
+        .badge-blue { background-color: #dbeafe; color: #1e40af; }
+
+        .fade-in { animation: fadeInAnimation 0.5s ease-in-out; }
+        @keyframes fadeInAnimation {
+            0% { opacity: 0; transform: translateY(10px); }
+            100% { opacity: 1; transform: translateY(0); }
+        }
+        .ai-insight-box {
+            margin-top: 1rem;
+            padding: 1rem;
+            background-color: #e0f2fe; /* sky-100 */
+            border-left: 4px solid #0ea5e9; /* sky-500 */
+            border-radius: 0.25rem;
+            font-size: 0.9rem;
+            color: #0c4a6e; /* sky-800 */
+        }
+        .loading-spinner {
+            border: 4px solid #f3f3f3; /* Light grey */
+            border-top: 4px solid #3498db; /* Blue */
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            animation: spin 1s linear infinite;
+            display: inline-block;
+            margin-left: 8px;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .button-ai {
+            background-color: #0ea5e9; /* sky-500 */
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 0.375rem; /* rounded-md */
+            font-weight: 500; /* font-medium */
+            transition: background-color 0.2s;
+            display: inline-flex;
+            align-items: center;
+            cursor: pointer;
+        }
+        .button-ai:hover {
+            background-color: #0284c7; /* sky-600 */
+        }
+        .button-ai:disabled {
+            background-color: #7dd3fc; /* sky-300 */
+            cursor: not-allowed;
+        }
+    </style>
+</head>
+<body class="bg-neutral-100 text-neutral-800">
+    <div class="container mx-auto p-4 sm:p-6 lg:p-8 max-w-7xl">
+        <header class="mb-8 text-center">
+            <h1 class="text-3xl sm:text-4xl font-bold text-sky-700">Resumo de Mercado Pré-Abertura com IA</h1>
+            <p class="text-lg text-neutral-600">27 de Maio de 2025</p>
+        </header>
+
+        <section id="global-overview" class="mb-10 p-6 bg-white rounded-lg shadow-xl">
+            <h2 class="text-2xl font-semibold text-sky-600 mb-4 border-b pb-2">Panorama Global e Indicadores Overnight</h2>
+            <p class="mb-6 text-neutral-700">
+                Esta seção apresenta um resumo do sentimento do mercado global com base nos fechamentos e negociações overnight, além dos principais indicadores econômicos e commodities que podem influenciar o pregão de hoje. Acompanhe as tendências para tomar decisões mais informadas.
+            </p>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                <div>
+                    <h3 class="text-xl font-semibold text-neutral-700 mb-3">Mercados Globais e Futuros</h3>
+                    <p class="text-sm text-neutral-600 mb-1"><strong class="text-neutral-700">Futuros EUA:</strong> S&P 500 Futuro opera em leve alta (+0.25%), Nasdaq 100 Futuro avança (+0.35%), indicando um otimismo cauteloso.</p>
+                    <p class="text-sm text-neutral-600 mb-1"><strong class="text-neutral-700">Europa (Abertura):</strong> Bolsas europeias iniciam o dia majoritariamente em território positivo (STOXX 600 +0.40%).</p>
+                    <p class="text-sm text-neutral-600 mb-1"><strong class="text-neutral-700">Ásia (Fechamento):</strong> Mercados asiáticos fecharam mistos. Nikkei (Japão) subiu (+0.60%), enquanto Shanghai Composite (China) recuou (-0.20%).</p>
+                    <p class="text-sm text-neutral-600 mb-1"><strong class="text-neutral-700">Dólar (USD/BRL Futuro):</strong> Apresenta estabilidade, cotado em torno de R$ 5,15, com leve viés de alta.</p>
+                     <p class="text-sm text-neutral-600"><strong class="text-neutral-700">Índice Futuro (IND Fut):</strong> Aponta para uma abertura próxima da estabilidade a levemente positiva para o Ibovespa.</p>
+                </div>
+                <div>
+                    <h3 class="text-xl font-semibold text-neutral-700 mb-3">Indicadores Chave Overnight</h3>
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full text-sm bg-white rounded-md shadow">
+                            <thead class="bg-neutral-200">
+                                <tr>
+                                    <th class="p-3 text-left font-semibold text-neutral-700">Indicador</th>
+                                    <th class="p-3 text-left font-semibold text-neutral-700">Último Valor (Aprox.)</th>
+                                    <th class="p-3 text-left font-semibold text-neutral-700">Variação / Tendência</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-neutral-200">
+                                <tr><td class="p-3">Petróleo Brent (Futuro)</td><td class="p-3">USD 83,50/barril</td><td class="p-3 text-green-600">Alta (+0.6%) &#x2197;</td></tr>
+                                <tr><td class="p-3">Minério de Ferro (Dalian)</td><td class="p-3">USD 118,00/ton</td><td class="p-3 text-red-600">Baixa (-0.5%) &#x2198;</td></tr>
+                                <tr><td class="p-3">S&P 500 Futuro</td><td class="p-3">5.325 pts</td><td class="p-3 text-green-600">Alta (+0.25%) &#x2197;</td></tr>
+                                <tr><td class="p-3">Dólar (USD/BRL Futuro)</td><td class="p-3">R$ 5,15</td><td class="p-3 text-yellow-600">Estável / Leve Alta &#x2192;</td></tr>
+                                <tr><td class="p-3">Celulose (China BHKP)</td><td class="p-3">USD 630/ton</td><td class="p-3 text-yellow-600">Estável &#x2192;</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            <div>
+                <h3 class="text-xl font-semibold text-neutral-700 mb-3 text-center">Tendência de Commodities Selecionadas (Últimos Dias)</h3>
+                <div class="chart-container bg-white p-4 rounded-md shadow">
+                    <canvas id="commoditiesChart"></canvas>
+                </div>
+            </div>
+        </section>
+
+        <section id="stock-analysis" class="mb-6">
+            <h2 class="text-2xl font-semibold text-sky-600 mb-4 border-b pb-2">Análise Individual das Ações com IA</h2>
+            <p class="mb-6 text-neutral-700">
+                Selecione uma ação da lista abaixo para visualizar um resumo das notícias corporativas recentes, informações sobre resultados, recomendações de analistas e outros dados relevantes. Utilize os botões com ✨ para obter análises geradas por Inteligência Artificial. As informações são simuladas para o dia 27 de maio de 2025.
+            </p>
+            <div class="mb-6">
+                <label for="stock-selector" class="block text-sm font-medium text-neutral-700 mb-1">Selecione a Ação:</label>
+                <select id="stock-selector" class="block w-full p-3 border border-neutral-300 rounded-md shadow-sm focus:ring-sky-500 focus:border-sky-500 sm:text-sm bg-white">
+                    <option value="">-- Escolha uma ação --</option>
+                </select>
+            </div>
+            <div id="stock-details-content" class="mt-4">
+                <p class="text-center text-neutral-500">Selecione uma ação para ver os detalhes.</p>
+            </div>
+        </section>
+
+        <footer class="text-center mt-12 py-4 border-t border-neutral-300">
+            <p class="text-sm text-neutral-500">&copy; 2025 Resumo de Mercado com IA. Informações simuladas para fins demonstrativos.</p>
+        </footer>
+    </div>
+
+    <script>
+        const stockDatabase = {
+            "ABEV3": {
+                name: "Ambev S.A.",
+                corporateNews: [
+                    "Não foram identificados Fatos Relevantes ou Comunicados ao Mercado via CVM ou no site de Relações com Investidores da Ambev (ABEV3) após o fechamento do pregão de 26/05/2025 ou durante a madrugada de 27/05/2025 que pudessem impactar diretamente a cotação na abertura de hoje.",
+                    "O último arquivamento relevante no site de RI da Ambev foi o Formulário de Referência, atualizado em 15 de abril de 2025."
+                ],
+                earnings: {
+                    last: "O resultado do primeiro trimestre de 2025 (1T25) foi divulgado em 07 de maio de 2025.",
+                    next: "A data de divulgação do resultado do 2T25 ainda não foi formalmente anunciada, mas é esperada para o início de agosto de 2025."
+                },
+                analystRecommendations: [
+                    { bank: "XP Investimentos", rating: "Neutra", target: "R$ 14,00", summary: "XP mantém visão cautelosa para ABEV3, citando pressões de custo com commodities e câmbio. Preço-alvo de R$14,00 (análise de 20/05/2025).", source: "Relatório XP Ações" },
+                    { bank: "Genial Investimentos", rating: "Manter", target: "R$ 14,50", summary: "Genial destaca resiliência da Ambev mas vê pouco espaço para valorização no curto prazo. (análise de 15/05/2025).", source: "Plataforma Genial Analisa" },
+                    { bank: "Itaú BBA", rating: "Market Perform", target: "R$ 15,00", summary: "Itaú BBA espera um ano desafiador para volumes, mas vê a empresa bem posicionada a longo prazo. (análise de 22/05/2025).", source: "Relatórios Itaú BBA" }
+                ],
+                adr: { ticker: "ABEV (NYSE)", price: "USD 2,75", change: "+0.36%", observation: "Desempenho no after-hours de 26/05/2025." },
+                summaryTable: [
+                    { info: "Último Fato Relevante/Comunicado RI", detail: "Formulário de Referência (15/04/2025)" },
+                    { info: "Resultado 1T25 Divulgado em", detail: "07/05/2025" },
+                    { info: "Recomendação Consolidada (Simulada)", detail: "Neutra / Manter" }
+                ]
+            },
+            "PETR4": {
+                name: "Petrobras S.A.",
+                corporateNews: [
+                    "Petrobras comunicou ao mercado (26/05/2025, após o fechamento) a conclusão programada de manutenção em unidade de refino na REPLAN, sem impacto esperado na produção consolidada de derivados do mês.",
+                    "CVM não registra novos fatos relevantes para PETR4 nas últimas horas."
+                ],
+                earnings: {
+                    last: "Resultado do 1T25 divulgado em 10 de maio de 2025.",
+                    next: "Próximo resultado (2T25) esperado para a primeira quinzena de agosto de 2025."
+                },
+                analystRecommendations: [
+                    { bank: "XP Investimentos", rating: "Compra", target: "R$ 45,00", summary: "XP reiterou recomendação de Compra para PETR4 após atualização de premissas para preço do petróleo e câmbio. Novo preço-alvo R$45,00 (relatório de 26/05/2025).", source: "Relatório XP Ações PETR4/relatorios" },
+                    { bank: "BTG Pactual", rating: "Compra", target: "R$ 42,00", summary: "BTG Pactual vê Petrobras com valuation atrativo e forte geração de caixa, mesmo com volatilidade política. (análise de 20/05/2025).", source: "Relatórios BTG Pactual" }
+                ],
+                adr: { ticker: "PBR (NYSE)", price: "USD 15.50", change: "-0.50%", observation: "Desempenho no after-hours de 26/05/2025, refletindo leve queda do petróleo." },
+                summaryTable: [
+                    { info: "Último Comunicado RI", detail: "Manutenção em Refino REPLAN (26/05/2025)" },
+                    { info: "Resultado 1T25 Divulgado em", detail: "10/05/2025" },
+                    { info: "Recomendação XP (Recente)", detail: "Compra, Target R$ 45,00" }
+                ]
+            },
+            "VALE3": {
+                name: "Vale S.A.",
+                corporateNews: [
+                    "Não foram identificados Fatos Relevantes ou Comunicados ao Mercado específicos da Vale (VALE3) após o fechamento de 26/05/2025 ou durante a madrugada de 27/05/2025.",
+                    "Mercado segue atento às negociações sobre o acordo de Mariana e às cotações do minério de ferro."
+                ],
+                earnings: {
+                    last: "Resultado do 1T25 divulgado em 25 de abril de 2025.",
+                    next: "Próximo resultado (2T25) previsto para final de julho de 2025."
+                },
+                analystRecommendations: [
+                    { bank: "Genial Investimentos", rating: "Comprar", target: "R$ 80,00", summary: "Genial atualizou estimativas para Vale, considerando preços de minério de ferro mais resilientes que o esperado. (análise de 22/05/2025).", source: "Plataforma Genial Analisa" },
+                    { bank: "Banco Safra", rating: "Neutro", target: "R$ 70,00", summary: "Safra mantém cautela com Vale devido à volatilidade do minério e incertezas na demanda chinesa. (análise de 18/05/2025).", source: "Relatórios Banco Safra" }
+                ],
+                adr: { ticker: "VALE (NYSE)", price: "USD 12.80", change: "-0.85%", observation: "Desempenho no after-hours de 26/05/2025, acompanhando a leve queda do minério." },
+                summaryTable: [
+                    { info: "Último Fato Relevante/Comunicado RI", detail: "Sem novidades de impacto imediato." },
+                    { info: "Resultado 1T25 Divulgado em", detail: "25/04/2025" },
+                    { info: "Recomendação Genial (Recente)", detail: "Comprar, Target R$ 80,00" }
+                ]
+            },
+            "ITUB4": {
+                name: "Itaú Unibanco Holding S.A.",
+                corporateNews: [
+                    "Itaú Unibanco informou (26/05/2025, após fechamento) sobre a aprovação de Juros Sobre Capital Próprio (JCP) no valor de R$0,25 por ação, a serem pagos em 30/06/2025.",
+                    "Nenhuma outra divulgação de impacto imediato encontrada."
+                ],
+                earnings: {
+                    last: "Resultado do 1T25 divulgado em 06 de maio de 2025.",
+                    next: "Próximo resultado (2T25) esperado para início de agosto de 2025."
+                },
+                analystRecommendations: [
+                    { bank: "Itaú BBA", rating: "Outperform", target: "R$ 38,00", summary: "O próprio Itaú BBA (em relatório sobre o setor bancário) mantém visão positiva para ITUB4, destacando rentabilidade e controle de custos. (análise de 20/05/2025).", source: "Relatórios Itaú BBA" },
+                    { bank: "XP Investimentos", rating: "Compra", target: "R$ 37,00", summary: "XP vê Itaú como principal escolha no setor bancário, com forte ROE e dividendos. (análise de 15/05/2025).", source: "Relatório XP Ações ITUB4" }
+                ],
+                adr: { ticker: "ITUB (NYSE)", price: "USD 6.80", change: "+0.29%", observation: "Desempenho no after-hours de 26/05/2025." },
+                summaryTable: [
+                    { info: "Último Comunicado RI", detail: "Aprovação de JCP (26/05/2025)" },
+                    { info: "Resultado 1T25 Divulgado em", detail: "06/05/2025" },
+                    { info: "Recomendação XP", detail: "Compra, Target R$ 37,00" }
+                ]
+            },
+             "MGLU3": {
+                name: "Magazine Luiza S.A.",
+                corporateNews: [
+                    "Nenhum Fato Relevante ou Comunicado ao Mercado de MGLU3 após o fechamento de 26/05/2025 ou overnight.",
+                    "Mercado especula sobre possíveis parcerias no setor de marketplace, mas sem confirmações oficiais."
+                ],
+                earnings: {
+                    last: "Resultado do 1T25 divulgado em 09 de maio de 2025.",
+                    next: "Próximo resultado (2T25) esperado para meados de agosto de 2025."
+                },
+                analystRecommendations: [
+                    { bank: "BTG Pactual", rating: "Neutro", target: "R$ 2,50", summary: "BTG Pactual comenta sobre os desafios persistentes no setor de varejo eletrônico, incluindo concorrência e cenário macro. (análise de 21/05/2025).", source: "Relatórios BTG Pactual" },
+                    { bank: "Genial Investimentos", rating: "Vender", target: "R$ 1,80", summary: "Genial mantém visão pessimista para o setor, citando juros altos e competição acirrada. (análise de 19/05/2025).", source: "Plataforma Genial Analisa" }
+                ],
+                adr: null,
+                summaryTable: [
+                    { info: "Último Fato Relevante/Comunicado RI", detail: "Sem novidades de impacto imediato." },
+                    { info: "Resultado 1T25 Divulgado em", detail: "09/05/2025" },
+                    { info: "Recomendação Consolidada (Simulada)", detail: "Neutra / Vender" }
+                ]
+            }
+        };
+
+        const allStockTickers = ["ABEV3", "ALOS3", "ASAI3", "AZUL4", "B3SA3", "BBAS3", "BBSE3", "BBDC4", "BEEF3", "BPAC11", "BRFS3", "CMIG4", "CMIN3", "CPLE6", "CRFB3", "CSAN3", "CSNA3", "CXSE3", "CYRE3", "ELET3", "ELET6", "EMBR3", "EQTL3", "FLRY3", "GGBR4", "GOAU4", "HAPV3", "ITSA4", "ITUB4", "JBSS3", "KLBN11", "LREN3", "MGLU3", "MULT3", "NTCO3", "PCAR3", "PETR4", "PRIO3", "RADL3", "RAIL3", "RDOR3", "RENT3", "SANB11", "SIMH3", "SBSP3", "SUZB3", "TTEN3", "TIMS3", "TOTS3", "UGPA3", "VALE3", "VAMO3", "VBBR3", "VIVA3", "VIVT3", "WEGE3", "YDUQ3"];
+
+        function populateStockDatabase() {
+            allStockTickers.forEach(ticker => {
+                if (!stockDatabase[ticker]) {
+                    stockDatabase[ticker] = {
+                        name: `${ticker} (Nome da Empresa Pendente)`,
+                        corporateNews: ["Nenhuma notícia de impacto encontrada para esta ação após o fechamento de 26/05/2025 ou overnight."],
+                        earnings: { last: "Informação de resultados não disponível.", next: "Próxima divulgação não informada." },
+                        analystRecommendations: [{ bank: "Mercado", rating: "N/A", target: "N/A", summary: "Sem recomendações recentes de analistas encontradas para esta ação nas fontes consultadas.", source: "Consolidado Simulado"}],
+                        adr: null,
+                        summaryTable: [
+                            { info: "Último Fato Relevante/Comunicado RI", detail: "Não identificado." },
+                            { info: "Recomendação Consolidada (Simulada)", detail: "N/A" }
+                        ]
+                    };
+                }
+            });
+        }
+
+        function getRatingBadge(rating) {
+            if (!rating) return '';
+            const lowerRating = rating.toLowerCase();
+            if (lowerRating.includes('compra') || lowerRating.includes('outperform') || lowerRating.includes('strong buy')) {
+                return `<span class="badge badge-green">${rating}</span>`;
+            } else if (lowerRating.includes('neutra') || lowerRating.includes('manter') || lowerRating.includes('market perform') || lowerRating.includes('equal-weight')) {
+                return `<span class="badge badge-yellow">${rating}</span>`;
+            } else if (lowerRating.includes('venda') || lowerRating.includes('underperform') || lowerRating.includes('reduzir')) {
+                return `<span class="badge badge-red">${rating}</span>`;
+            }
+            return `<span class="badge badge-blue">${rating}</span>`;
+        }
+
+        async function callGeminiAPI(prompt, buttonElement, outputElementId) {
+            const outputElement = document.getElementById(outputElementId);
+            const originalButtonText = buttonElement.innerHTML;
+            buttonElement.disabled = true;
+            buttonElement.innerHTML = 'Analisando... <div class="loading-spinner"></div>';
+            outputElement.innerHTML = '<p>Aguarde enquanto a IA processa sua solicitação...</p>';
+            outputElement.style.display = 'block';
+
+            const apiKey = ""; // Gemini API Key - Will be auto-provided by Canvas environment for gemini-2.0-flash
+            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
+            
+            let chatHistory = [{ role: "user", parts: [{ text: prompt }] }];
+            const payload = { contents: chatHistory };
+
+            try {
+                const response = await fetch(apiUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    console.error("API Error Response:", errorData);
+                    throw new Error(`Erro na API: ${response.status} ${response.statusText}. Detalhes: ${errorData?.error?.message || 'Sem detalhes adicionais.'}`);
+                }
+
+                const result = await response.json();
+
+                if (result.candidates && result.candidates.length > 0 &&
+                    result.candidates[0].content && result.candidates[0].content.parts &&
+                    result.candidates[0].content.parts.length > 0) {
+                    const text = result.candidates[0].content.parts[0].text;
+                    outputElement.innerHTML = `<p>${text.replace(/\n/g, '<br>')}</p>`;
+                } else {
+                    console.error("Unexpected API response structure:", result);
+                    outputElement.innerHTML = '<p class="text-red-500">Não foi possível obter uma resposta da IA ou a resposta está em um formato inesperado.</p>';
+                }
+            } catch (error) {
+                console.error('Erro ao chamar a API Gemini:', error);
+                outputElement.innerHTML = `<p class="text-red-500">Erro ao processar sua solicitação: ${error.message}. Verifique o console para mais detalhes.</p>`;
+            } finally {
+                buttonElement.disabled = false;
+                buttonElement.innerHTML = originalButtonText;
+            }
+        }
+
+
+        function renderStockDetails(ticker) {
+            const detailsDiv = document.getElementById('stock-details-content');
+            const stock = stockDatabase[ticker];
+
+            if (!stock) {
+                detailsDiv.innerHTML = `<p class="text-center text-red-500">Dados não encontrados para ${ticker}.</p>`;
+                return;
+            }
+
+            let html = `<div class="stock-detail-card fade-in">`;
+            html += `<h2 class="text-3xl font-bold text-sky-700 mb-2">${ticker} - ${stock.name}</h2>`;
+
+            html += `<h3>Notícias Corporativas (RI/CVM)</h3>`;
+            if (stock.corporateNews && stock.corporateNews.length > 0) {
+                html += `<ul>`;
+                stock.corporateNews.forEach(news => {
+                    html += `<li>${news}</li>`;
+                });
+                html += `</ul>`;
+                html += `<button id="ai-news-sentiment-btn" class="button-ai mt-2 mb-2">✨ Analisar Sentimento das Notícias com IA</button>`;
+                html += `<div id="ai-news-sentiment-output" class="ai-insight-box" style="display:none;"></div>`;
+            } else {
+                html += `<p>Nenhuma notícia corporativa relevante encontrada.</p>`;
+            }
+
+            html += `<h3>Resultados Trimestrais/Anuais</h3>`;
+            if (stock.earnings) {
+                html += `<p><strong>Último Resultado:</strong> ${stock.earnings.last}</p>`;
+                html += `<p><strong>Próximo Resultado (Expectativa):</strong> ${stock.earnings.next}</p>`;
+            } else {
+                html += `<p>Informações sobre resultados não disponíveis.</p>`;
+            }
+
+            html += `<h3>Recomendações de Analistas</h3>`;
+            if (stock.analystRecommendations && stock.analystRecommendations.length > 0) {
+                stock.analystRecommendations.forEach(rec => {
+                    html += `<h4>${rec.bank} ${getRatingBadge(rec.rating)}</h4>`;
+                    html += `<p><strong>Preço-Alvo:</strong> ${rec.target || 'N/A'}</p>`;
+                    html += `<p class="text-sm italic">"${rec.summary}"</p>`;
+                    html += `<p class="text-xs text-neutral-500">Fonte: ${rec.source}</p>`;
+                });
+            } else {
+                html += `<p>Nenhuma recomendação de analista encontrada recentemente.</p>`;
+            }
+            
+            html += `<button id="ai-additional-insights-btn" class="button-ai mt-4 mb-2">✨ Obter Insights Adicionais com IA</button>`;
+            html += `<div id="ai-additional-insights-output" class="ai-insight-box" style="display:none;"></div>`;
+
+
+            if (stock.adr) {
+                html += `<h3>ADRs (${stock.adr.ticker})</h3>`;
+                html += `<p><strong>Última Cotação:</strong> ${stock.adr.price} (${stock.adr.change})</p>`;
+                if(stock.adr.observation) html += `<p class="text-sm text-neutral-600">(${stock.adr.observation})</p>`;
+            }
+
+            html += `<h3 class="mt-6">Tabela Resumo ${ticker}</h3>`;
+            if (stock.summaryTable && stock.summaryTable.length > 0) {
+                html += `<div class="overflow-x-auto"><table class="min-w-full text-sm bg-neutral-50 rounded shadow">
+                            <thead class="bg-neutral-200">
+                                <tr>
+                                    <th class="p-3 text-left font-semibold text-neutral-700">Informação</th>
+                                    <th class="p-3 text-left font-semibold text-neutral-700">Detalhe</th>
+                                </tr>
+                            </thead>
+                            <tbody>`;
+                stock.summaryTable.forEach(item => {
+                    html += `<tr><td class="p-3 border-t border-neutral-200">${item.info}</td><td class="p-3 border-t border-neutral-200">${item.detail}</td></tr>`;
+                });
+                html += `</tbody></table></div>`;
+            } else {
+                html += `<p>Tabela resumo não disponível.</p>`;
+            }
+
+            html += `</div>`;
+            detailsDiv.innerHTML = html;
+
+            // Add event listeners for AI buttons after HTML is rendered
+            const newsSentimentBtn = document.getElementById('ai-news-sentiment-btn');
+            if (newsSentimentBtn) {
+                newsSentimentBtn.addEventListener('click', () => {
+                    const newsText = stock.corporateNews.join("\n");
+                    const prompt = `Analise o sentimento das seguintes notícias corporativas para a ação ${ticker} (${stock.name}) e resuma o impacto potencial no mercado de forma concisa. As notícias são: \n${newsText}\n\nO sentimento é predominantemente positivo, negativo ou neutro? Justifique brevemente.`;
+                    callGeminiAPI(prompt, newsSentimentBtn, 'ai-news-sentiment-output');
+                });
+            }
+
+            const additionalInsightsBtn = document.getElementById('ai-additional-insights-btn');
+            if (additionalInsightsBtn) {
+                additionalInsightsBtn.addEventListener('click', () => {
+                    let recommendationsText = "Nenhuma recomendação de analista disponível.";
+                    if (stock.analystRecommendations && stock.analystRecommendations.length > 0) {
+                        recommendationsText = stock.analystRecommendations.map(r => `${r.bank}: ${r.rating}, Alvo ${r.target}. Resumo: ${r.summary}`).join("\n");
+                    }
+                    const earningsText = `Último: ${stock.earnings.last}. Próximo: ${stock.earnings.next}.`;
+                    const prompt = `Para a ação ${ticker} (${stock.name}), considerando as seguintes informações:\nNotícias Recentes: ${stock.corporateNews.join("; ")}\nRecomendações de Analistas:\n${recommendationsText}\nInformações de Resultados:\n${earningsText}\n\nForneça um breve resumo (2-3 parágrafos) dos principais pontos de atenção e perspectivas para esta ação para o pregão de hoje (27/05/2025), considerando um investidor de curto prazo. Destaque potenciais catalisadores ou riscos.`;
+                    callGeminiAPI(prompt, additionalInsightsBtn, 'ai-additional-insights-output');
+                });
+            }
+        }
+
+        function initApp() {
+            populateStockDatabase();
+            const stockSelector = document.getElementById('stock-selector');
+            allStockTickers.sort().forEach(ticker => {
+                const option = document.createElement('option');
+                option.value = ticker;
+                option.textContent = `${ticker} - ${stockDatabase[ticker] ? stockDatabase[ticker].name : 'Empresa Desconhecida'}`;
+                stockSelector.appendChild(option);
+            });
+
+            stockSelector.addEventListener('change', (event) => {
+                if (event.target.value) {
+                    renderStockDetails(event.target.value);
+                } else {
+                    document.getElementById('stock-details-content').innerHTML = `<p class="text-center text-neutral-500">Selecione uma ação para ver os detalhes.</p>`;
+                }
+            });
+
+            const ctxCommodities = document.getElementById('commoditiesChart').getContext('2d');
+            new Chart(ctxCommodities, {
+                type: 'line',
+                data: {
+                    labels: ['22/05', '23/05', '24/05', '26/05', 'Overnight 27/05'],
+                    datasets: [
+                        {
+                            label: 'Petróleo Brent (USD)',
+                            data: [81.5, 82.0, 82.8, 82.98, 83.50],
+                            borderColor: 'rgb(59, 130, 246)', 
+                            tension: 0.1,
+                            fill: false
+                        },
+                        {
+                            label: 'Minério de Ferro (USD/ton)',
+                            data: [120.5, 119.0, 118.8, 118.6, 118.00],
+                            borderColor: 'rgb(16, 185, 129)', 
+                            tension: 0.1,
+                            fill: false
+                        },
+                         {
+                            label: 'Dólar (BRL)',
+                            data: [5.12, 5.13, 5.14, 5.145, 5.15],
+                            borderColor: 'rgb(234, 179, 8)', 
+                            tension: 0.1,
+                            fill: false
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: { beginAtZero: false, ticks: { color: '#404040' }, grid: { color: '#e5e5e5' } },
+                        x: { ticks: { color: '#404040' }, grid: { display: false } }
+                    },
+                    plugins: { legend: { labels: { color: '#404040' } } }
+                }
+            });
+        }
+
+        document.addEventListener('DOMContentLoaded', initApp);
+    </script>
+</body>
+</html>
